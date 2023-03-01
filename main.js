@@ -5,7 +5,9 @@ var canvas = document.getElementById("renderCanvas");
         var webarStage = null;
         var stageReadyVariable = 0;
         var point =0;
-        var life = 3;
+        var life = 5;
+
+        var enemyCount = 15;
         var scaleByFactor = function(obj, factor) {
             obj.scaling.x = obj.scaling.x * factor;
             obj.scaling.y = obj.scaling.y * factor;
@@ -29,6 +31,17 @@ var canvas = document.getElementById("renderCanvas");
             var gravityVector = new BABYLON.Vector3(0,-9.81, 0);
             var physicsPlugin = new BABYLON.CannonJSPlugin();
             scene.enablePhysics(gravityVector, physicsPlugin);
+
+            var music = new BABYLON.Sound(
+                "Music", "music/civil-war.mp3", scene, null, { 
+                   volume: 0.5,
+                    loop: true, 
+                   autoplay: true,
+                   spatialSound: true,
+                }
+             );
+
+            const bombSound = new BABYLON.Sound("bombSound", "music/silenced-gun.mp3", scene);
 
             var light = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(5, 10, -2), scene);
             light.intensity = 0.7;
@@ -165,7 +178,7 @@ var canvas = document.getElementById("renderCanvas");
             button1.onPointerDownObservable.add(function() {
                 //alert("you did it!");
                 firebullet(power);
-               
+                bombSound.play();
                 console.info("firebullet");
                 //castRay();
             });
@@ -297,7 +310,7 @@ var canvas = document.getElementById("renderCanvas");
 
             }
 
-            var createEnemy = function(name,x,y,z){
+            var createEnemy2 = function(name,x,y,z){
                 //var enemyObj = BABYLON.MeshBuilder.CreateCylinder(name, { height: 0.5, diameter: 0.6, tessellation: 16 }, scene);
                 var enemyObj = BABYLON.Mesh.CreateCylinder(name, 3, 3, 0, 6, 1, scene, false);
                 enemyObj.material = new BABYLON.StandardMaterial("c6mat", scene);
@@ -314,8 +327,105 @@ var canvas = document.getElementById("renderCanvas");
                 return enemyObj;
             }
 
+            var createEnemy = function(name,x,y,z){
+                var enemyObj = BABYLON.Mesh.CreateCylinder(name, 3, 3, 0, 6, 1, scene, false);
+                enemyObj.material = new BABYLON.StandardMaterial("enemyMat", scene);
+                enemyObj.material.diffuseColor = new BABYLON.Color3(Math.random(), Math.random(), Math.random());
+                enemyObj.position.set(x,y,z);
+                enemyObj.physicsImpostor = new BABYLON.PhysicsImpostor(enemyObj, BABYLON.PhysicsImpostor.CylinderImpostor, { mass: 0, friction: 0.5, restition: 0.3 }, scene);
+            
+                var moveSpeed = Math.random() * 5 + 5;//0.05 // randomly set movement speed for enemy
+                var approachInterval = Math.random() * 1000 + 1000;//1000 // randomly set time interval for enemy to approach player
+                console.info(name+"  :movespeed-"+moveSpeed+"  approachInterval "+ approachInterval);
+                enemyObj.move = function() {
+                    // move the enemy in random direction
+                    var x = Math.random() * 0.2 - 0.1;
+                    var z = Math.random() * 0.25 - 0.1; //0.23
+                    this.position.addInPlace(new BABYLON.Vector3(x, 0, z));
+                    console.info(this+"-"+this.position);
+                    // calculate distance to player
+                    var distance = BABYLON.Vector3.Distance(this.position, cannonfoot.position);
+            
+                    // if distance to player is less than 10 units, move the enemy towards the player
+                    /*if (distance < 10) {
+                        var direction = cannonfoot.position.subtract(this.position);
+                        direction.normalize();
+                        this.position.addInPlace(direction.scale(moveSpeed));
+                        console.info("  attack....")
+                        enemyObj.dispose();
+                    }*/
+
+                    // if distance to player is less than 10 units, explode the enemy
+                    if (distance < 10) {
+                        console.info("  attack....")
+                        /*var particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
+                        particleSystem.particleTexture = new BABYLON.Texture("textures/Flare.png", scene);
+                        particleSystem.emitter = this;
+                        particleSystem.minEmitBox = new BABYLON.Vector3(-1, 0, -1);
+                        particleSystem.maxEmitBox = new BABYLON.Vector3(1, 0, 1);
+                        particleSystem.color1 = new BABYLON.Color4(1, 0.5, 0, 1.0);
+                        particleSystem.color2 = new BABYLON.Color4(1, 0.5, 0, 1.0);
+                        particleSystem.colorDead = new BABYLON.Color4(0, 0, 0, 0.0);
+                        particleSystem.minSize = 0.3;
+                        particleSystem.maxSize = 1.5;
+                        particleSystem.minLifeTime = 0.3;
+                        particleSystem.maxLifeTime = 1.5;
+                        particleSystem.emitRate = 1000;
+                        particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+                        particleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
+                        particleSystem.direction1 = new BABYLON.Vector3(-1, 1, -1);
+                        particleSystem.direction2 = new BABYLON.Vector3(1, 1, 1);
+                        particleSystem.minAngularSpeed = 0;
+                        particleSystem.maxAngularSpeed = Math.PI;
+                        particleSystem.minEmitPower = 1;
+                        particleSystem.maxEmitPower = 3;
+                        particleSystem.updateSpeed = 0.005;
+                        particleSystem.start();
+                        */
+                        this.dispose();
+                        //.dispose();
+                        life -= 1;
+                        var index = enemy.indexOf(this);
+                        if (index !== -1) {
+                            enemy.splice(index, 1);
+                            console.log(enemy); // output the enemy array
+                        }
+                        console.info("enemy length: "+ enemy.length);
+                    }
+                    // if distance to player is less than 10 units, move the enemy towards the player
+                    else if (distance < 15) {
+                        var direction = cannonfoot.position.subtract(this.position);
+                        direction.normalize();
+                        this.position.addInPlace(direction.scale(moveSpeed));
+                    }
+                    else if (distance < 30) {
+                        var dx = cannonfoot.position.x - this.position.x;
+                        var dy = cannonfoot.position.y - this.position.y;
+            
+                        if (Math.abs(dx) > 20 || Math.abs(dy) > 10) {
+                            // move enemy towards player if the enemy's position goes beyond the player whose x and y position is greater than 10 units away
+                            var direction = cannonfoot.position.subtract(this.position);
+                            direction.normalize();
+                            this.position.addInPlace(direction.scale(moveSpeed));
+                        }
+                    }
+                };
+            
+                //setInterval(function() {  enemyObj.move();   }, approachInterval);
+            
+                return enemyObj;
+            };
+
+            
+            
+            var moveEnemies = function() {
+                for (var i = 0; i < enemy.length; i++) {
+                    enemy[i].move();
+                }
+            };
+
             var enemy = [];
-            for(var i=0; i< 30; i++){
+            for(var i=0; i< enemyCount; i++){
                 
                 //randomInteger(-5,10)
                 enemy[i] = createEnemy("enemy"+i,randomInteger(-20,20),randomInteger(-15,20),-50);
@@ -327,6 +437,7 @@ var canvas = document.getElementById("renderCanvas");
                 //scaleByFactor(enemy[i], 2);
                 
             }
+        
 
             // Pass babylon canvas, scene, camera and webarStage mesh to WebarSdk to initialize surface tracking
             WEBARSDK.InitBabylonJs(canvas, scene, camera, webarStage);
@@ -343,7 +454,7 @@ var canvas = document.getElementById("renderCanvas");
                 bullet.isPickable = false; 
                 bullet.physicsImpostor = new BABYLON.PhysicsImpostor(bullet, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1, friction: 0.5, restition: 0.9 }, scene);
                 
-                bullet.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(1, 5, 1));
+                bullet.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(1, 1, 10));
                 //scaleByFactor(bullet, 0.4);
 
                 const sphereMaterial = new BABYLON.StandardMaterial("material", scene);
@@ -429,11 +540,15 @@ var canvas = document.getElementById("renderCanvas");
             
             scene.registerBeforeRender(function (){ 
                 if(stageReadyVariable == 1)  {
-                    console.info("render before"); 
+                    //console.info("render before"); 
 
                     label.text = "Smash \n " +point;
                     label1.text = "Life \n " +life;
 
+                    /*for (var i = 0; i < enemy.length; i++) {
+                        enemy[i].rotation.x = -Math.PI / 2; 
+                    }*/
+                    moveEnemies();
                     /*for (var i = 0; i < enemy.length; i++) {
                         moveEnemy(enemy[i]);
                         console.info("enenmy"+i+" before render move");
