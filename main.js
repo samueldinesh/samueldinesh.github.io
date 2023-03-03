@@ -4,6 +4,9 @@ var canvas = document.getElementById("renderCanvas");
         var sceneToRender = null;
         var webarStage = null;
         var stageReadyVariable = 0;
+        var gamescreenEnable = false;
+        var tracking = false;
+
         var point =0;
         var life = 5;
 
@@ -14,11 +17,11 @@ var canvas = document.getElementById("renderCanvas");
             obj.scaling.z = obj.scaling.z * factor;
         }
 
-        var createDefaultEngine = function() { 
+        function createDefaultEngine () { 
             return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); 
         };
 
-        var createScene = function () {
+        function createScene () {
             var scene = new BABYLON.Scene(engine);
             //scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("./models/environment.dds", scene);
 
@@ -46,206 +49,278 @@ var canvas = document.getElementById("renderCanvas");
             var light = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(5, 10, -2), scene);
             light.intensity = 0.7;
 
-            // Create an empty webarStage mesh. Models/meshes appended as a children to this webarStage mesh will be displayed on the surface.
-            webarStage = new BABYLON.Mesh("webarStage", scene);
-
-            // Create a time varying PBR material for the base cylinder mesh
-            /*var pbr = new BABYLON.PBRMaterial("pbr", scene);
-            pbr.metallic = 1.0;
-            pbr.roughness = 0;
-            pbr.subSurface.isRefractionEnabled = true;
-            pbr.subSurface.indexOfRefraction = 1.5;
-            pbr.subSurface.tintColor = new BABYLON.Color3(0.5, 0, 0);
-            var a = 0;
-            scene.beforeRender = () => {
-                a += 0.05;
-                pbr.subSurface.tintColor.g = Math.cos(a) * 0.5 + 0.5;
-                pbr.subSurface.tintColor.b = pbr.subSurface.tintColor.g;
-            }
-
-            // Create primitive shape using mesh builder and set webarStage as its parent so that it appears on the surface
-            var cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height: 0.1, diameterTop: 1, diameterBottom: 1, tessellation: 128}, scene);
-            cylinder.material = pbr;
-            cylinder.position.y = 0.125;
-            cylinder.position.z = -0.075;
-            cylinder.setParent(webarStage);
+            var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
             
-            // Start spark and smoke particles
-            startParticles(scene, webarStage);
-            */
+            var instruction = null;
+            var startButton = null;
 
+            function menuScreen() {
+                // create a GUI for the menu screen
+                //var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
 
-            // Import a gltf model to the scene and scale appropriately. No need to set the parent to webarStage mesh.
-            // All gltf models imported to the scene are created under __root__ node by babylon.
-            // After the complete scene is ready, it is models under __root_ node are moved to webarStage mesh
-            // to appear on the surface
-            //BABYLON.SceneLoader.ImportMesh(['Object_2'], "./models/", "oscar_trophy.glb", scene, function (meshes, particleSystems, skeletons) {
-            /*BABYLON.SceneLoader.ImportMesh('', "./models/model/", "drone.babylon", scene, function (meshes, particleSystems, skeletons) {
-            
-                let xQuat = new BABYLON.Quaternion();
-                BABYLON.Quaternion.FromEulerAnglesToRef(Math.PI / 2, 0, 0, xQuat);
+                // Adding image
+                var iconImage = new BABYLON.GUI.Image("aero" + "_icon", "images/AERO.png");
+                iconImage.width = "80%";
+                iconImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+                iconImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                iconImage.top = "-250px";
+                advancedTexture.addControl(iconImage); 
 
-                for (mesh of meshes) {
-                    if (mesh.name !== '__root__') {
-                        // Move the loaded models to webarStage
-                        mesh.setParent(webarStage);
-                        mesh.rotationQuaternion.multiplyInPlace(xQuat);
+                // create a header label for the menu
+                var header = new BABYLON.GUI.TextBlock();
+                header.text = "AERO ";
+                header.fontSize = 48;
+                header.color = "red";
+                header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                header.top = "-250px";
+                //advancedTexture.addControl(header);
 
-                        scaleByFactor(mesh, 0.0375);
+                instruction = new BABYLON.GUI.TextBlock();
+                instruction.text = "slow move your phone left and right \n to setup Surface Tracking ";
+                instruction.fontSize = 20;
+                instruction.color = "white";
+                instruction.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                instruction.top = "-150px";
+                advancedTexture.addControl(instruction);
+    
+                // create a start button for the menu
+                startButton = BABYLON.GUI.Button.CreateSimpleButton("Play", "Play");
+                startButton.width = "200px";
+                startButton.height = "50px";
+                startButton.color = "white";
+                startButton.cornerRadius = 20;
+                startButton.background = "gray";
+                startButton.top = "150px";
+                startButton.onPointerUpObservable.add(function() {
+                    // start the game when the button is clicked
+                    if( stageReadyVariable == 1){
+                        startGame();
                     }
+                    
+                });
+                advancedTexture.addControl(startButton);
+                
+                /*
+                // create a quit button for the menu
+                var quitButton = BABYLON.GUI.Button.CreateSimpleButton("Settings", "Settings");
+                quitButton.width = "200px";
+                quitButton.height = "50px";
+                quitButton.color = "white";
+                quitButton.cornerRadius = 20;
+                quitButton.background = "red";
+                quitButton.top = "80px";
+                quitButton.onPointerUpObservable.add(function() {
+                    // quit the game when the button is clicked
+                    //window.close();
+                });
+                advancedTexture.addControl(quitButton);
+                */
+                // function to start the game
+                function startGame() {
+                    // remove the menu 
+                    iconImage.dispose();
+                    header.dispose();
+                    instruction.dispose();
+                    startButton.dispose();
+                    gameOverCheck = true;
+
+                    gamescreenEnable = true;
                 }
-            });*/
-
-            //BABYLON.SceneLoader.ImportMesh("", "./models/model/", "drone.babylon", scene, function (newMeshes) {
-            /*BABYLON.SceneLoader.ImportMesh("", "./models/model/", "bee.glb", scene, function (newMeshes) {
-                    //var _i=0;
-                    //newMeshes[0].setParent(webarStage);
-
-
-                for (mesh of newMeshes){
-                    mesh.setParent(webarStage);
-                    //_i += 1;
-                    //console.info(_i);
-                    //scaleByFactor(mesh, 0.5);
-                }
-               //var buggy2 = newMeshes[0];
-     
-               //camera.target = buggy2;
-              // buggy2.setParent(webarStage);
-       
-
-               //var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
-               //var ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 300, height:15}, scene);
-               //ground.material = decalMaterial;	
-            });	
-            */
-
-            //Added for shooting as gun
-           
-            var cannonfoot = BABYLON.MeshBuilder.CreateBox("Foot", { width: 1, height: 0.5, depth: 0.4 }, scene);
-            //cannonfoot.position.set(-5, 1, 8);// behind me the cannon apprears
-            //cannonfoot.position.set(0, -1, 2); //infront canon appears
-            
-            //cannonfoot.rotation.set(0, 7*Math.PI/8, 0);
-            scaleByFactor(cannonfoot, 2);
-            
-            var cannontube = BABYLON.MeshBuilder.CreateCylinder("Tube", { height: 1, diameter: 0.4, tessellation: 16 }, scene);
-            cannontube.position.set(0, 0, 0);
-            //scaleByFactor(cannontube, 2);
-
-            var itarg = BABYLON.Mesh.CreateBox("targ", 0.5, scene);
-            itarg.position.y = 3;
-            itarg.visibility = .1;
-            itarg.parent = cannontube;
-            //scaleByFactor(itarg, 0.5);
-
-
-            var objInXRStage = 0;
-            if(objInXRStage == 1){
-                cannontube.rotation.set(3*Math.PI/2, 0, 0);
-
-                cannontube.parent = cannonfoot; 
-
-                cannonfoot.setParent(webarStage);
-                cannonfoot.position.set(0, -1, -2); //infront canon appears
-
-                cannontube.rotation.addInPlace(new BABYLON.Vector3(Math.PI/12, 0, 0));
-
-
-            }else{           
-                cannontube.rotation.set(3*Math.PI/2, 6*Math.PI/2, 0);
-
-                cannontube.parent = cannonfoot; 
-
-                cannonfoot.setParent(camera);
-                cannonfoot.position.set(0, -5, 10); //infront canon appears
-
-                cannontube.position.addInPlace(new BABYLON.Vector3(0, 0, 1));
-                cannontube.rotation.addInPlace(new BABYLON.Vector3(Math.PI/12, 0, 0));
 
             }
+            var cannonfoot = null;
+            var cannontube = null;
+            var itarg = null;
+            function gameElements() {
+                // Create an empty webarStage mesh. Models/meshes appended as a children to this webarStage mesh will be displayed on the surface.
+                webarStage = new BABYLON.Mesh("webarStage", scene);
+
+                // Create a time varying PBR material for the base cylinder mesh
+                /*var pbr = new BABYLON.PBRMaterial("pbr", scene);
+                pbr.metallic = 1.0;
+                pbr.roughness = 0;
+                pbr.subSurface.isRefractionEnabled = true;
+                pbr.subSurface.indexOfRefraction = 1.5;
+                pbr.subSurface.tintColor = new BABYLON.Color3(0.5, 0, 0);
+                var a = 0;
+                scene.beforeRender = () => {
+                    a += 0.05;
+                    pbr.subSurface.tintColor.g = Math.cos(a) * 0.5 + 0.5;
+                    pbr.subSurface.tintColor.b = pbr.subSurface.tintColor.g;
+                }
+
+                // Create primitive shape using mesh builder and set webarStage as its parent so that it appears on the surface
+                var cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {height: 0.1, diameterTop: 1, diameterBottom: 1, tessellation: 128}, scene);
+                cylinder.material = pbr;
+                cylinder.position.y = 0.125;
+                cylinder.position.z = -0.075;
+                cylinder.setParent(webarStage);
+                
+                // Start spark and smoke particles
+                startParticles(scene, webarStage);
+                */
 
 
-            // GUI
-            var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+                // Import a gltf model to the scene and scale appropriately. No need to set the parent to webarStage mesh.
+                // All gltf models imported to the scene are created under __root__ node by babylon.
+                // After the complete scene is ready, it is models under __root_ node are moved to webarStage mesh
+                // to appear on the surface
+                //BABYLON.SceneLoader.ImportMesh(['Object_2'], "./models/", "oscar_trophy.glb", scene, function (meshes, particleSystems, skeletons) {
+                /*BABYLON.SceneLoader.ImportMesh('', "./models/model/", "drone.babylon", scene, function (meshes, particleSystems, skeletons) {
+                
+                    let xQuat = new BABYLON.Quaternion();
+                    BABYLON.Quaternion.FromEulerAnglesToRef(Math.PI / 2, 0, 0, xQuat);
 
-            var button1 = BABYLON.GUI.Button.CreateSimpleButton("but1", "Fire");
-            button1.width = "150px"
-            button1.height = "80px";
-            button1.color = "white";
-            button1.cornerRadius = 20;
-            button1.background = "red";
-            button1.onPointerDownObservable.add(function() {
-                //alert("you did it!");
-                firebullet(power);
-                bombSound.play();
-                console.info("firebullet");
-                //castRay();
-            });
-            button1.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
-            button1.top = "-40px"; // move button little over cannonfoot
-            advancedTexture.addControl(button1); 
+                    for (mesh of meshes) {
+                        if (mesh.name !== '__root__') {
+                            // Move the loaded models to webarStage
+                            mesh.setParent(webarStage);
+                            mesh.rotationQuaternion.multiplyInPlace(xQuat);
 
-            var rect1 = new BABYLON.GUI.Rectangle();
-            rect1.width = 0.2;
-            rect1.height = "80px";
-            rect1.cornerRadius = 20;
-            rect1.color = "Orange";
-            rect1.thickness = 4;
-            rect1.background = "green";
-            rect1.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
-            rect1.top = "-40px"; // move button little over cannonfoot
-            rect1.left = "-140px"; // move button
-            advancedTexture.addControl(rect1);
-  
+                            scaleByFactor(mesh, 0.0375);
+                        }
+                    }
+                });*/
 
-            var label = new BABYLON.GUI.TextBlock();
-            label.text = "Smash \n " +point;
-            rect1.addControl(label);
+                //BABYLON.SceneLoader.ImportMesh("", "./models/model/", "drone.babylon", scene, function (newMeshes) {
+                /*BABYLON.SceneLoader.ImportMesh("", "./models/model/", "bee.glb", scene, function (newMeshes) {
+                        //var _i=0;
+                        //newMeshes[0].setParent(webarStage);
 
-            var rect2 = new BABYLON.GUI.Rectangle();
-            rect2.width = 0.2;
-            rect2.height = "80px";
-            rect2.cornerRadius = 20;
-            rect2.color = "Orange";
-            rect2.thickness = 4;
-            rect2.background = "green";
-            rect2.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
-            rect2.top = "-40px"; // move button little over cannonfoot
-            rect2.left = "140px"; // move button
-            advancedTexture.addControl(rect2);
-  
 
-            var label1 = new BABYLON.GUI.TextBlock();
-            label1.text = "Life \n " +life;
-            rect2.addControl(label1);
+                    for (mesh of newMeshes){
+                        mesh.setParent(webarStage);
+                        //_i += 1;
+                        //console.info(_i);
+                        //scaleByFactor(mesh, 0.5);
+                    }
+                //var buggy2 = newMeshes[0];
+        
+                //camera.target = buggy2;
+                // buggy2.setParent(webarStage);
+        
+
+                //var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
+                //var ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 300, height:15}, scene);
+                //ground.material = decalMaterial;	
+                });	
+                */
+
+                //Added for shooting as gun
+                cannonfoot = BABYLON.MeshBuilder.CreateBox("Foot", { width: 1, height: 0.5, depth: 0.4 }, scene);
+                //cannonfoot.position.set(-5, 1, 8);// behind me the cannon apprears
+                //cannonfoot.position.set(0, -1, 2); //infront canon appears
+                
+                //cannonfoot.rotation.set(0, 7*Math.PI/8, 0);
+                scaleByFactor(cannonfoot, 2);
+                
+                cannontube = BABYLON.MeshBuilder.CreateCylinder("Tube", { height: 1, diameter: 0.4, tessellation: 16 }, scene);
+                cannontube.position.set(0, 0, 0);
+                //scaleByFactor(cannontube, 2);
+
+                itarg = BABYLON.Mesh.CreateBox("targ", 0.5, scene);
+                itarg.position.y = 3;
+                itarg.visibility = .8;
+                itarg.parent = cannontube;
+                //scaleByFactor(itarg, 0.5);
+
+
+                var objInXRStage = 0;
+                if(objInXRStage == 1){
+                    cannontube.rotation.set(3*Math.PI/2, 0, 0);
+
+                    cannontube.parent = cannonfoot; 
+
+                    cannonfoot.setParent(webarStage);
+                    cannonfoot.position.set(0, -1, -2); //infront canon appears
+
+                    cannontube.rotation.addInPlace(new BABYLON.Vector3(Math.PI/12, 0, 0));
+
+
+                }else{           
+                    cannontube.rotation.set(3*Math.PI/2, 6*Math.PI/2, 0);
+
+                    cannontube.parent = cannonfoot; 
+
+                    cannonfoot.setParent(camera);
+                    cannonfoot.position.set(0, -5, 10); //infront canon appears
+
+                    cannontube.position.addInPlace(new BABYLON.Vector3(0, 0, 1));
+                    cannontube.rotation.addInPlace(new BABYLON.Vector3(Math.PI/12, 0, 0));
+
+                }
+            }
+            var button1 = null;
+            var rect1 = null;
+            var rect2 = null;
+            var label = null;
+            var label2 = null;
+
+            function gameScreen(){
+                // GUI
+                //var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+                button1 = BABYLON.GUI.Button.CreateSimpleButton("but1", "Fire");
+                button1.width = "150px"
+                button1.height = "80px";
+                button1.color = "white";
+                button1.cornerRadius = 20;
+                button1.background = "red";
+                button1.onPointerDownObservable.add(function() {
+                    //alert("you did it!");
+                    var power = 10;
+                    firebullet(power);
+                    bombSound.play();
+                    console.info("firebullet");
+                    //castRay();
+                });
+                button1.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
+                button1.top = "-40px"; // move button little over cannonfoot
+                //advancedTexture.addControl(button1); 
+                
+                rect1 = new BABYLON.GUI.Rectangle();
+                rect1.width = 0.2;
+                rect1.height = "80px";
+                rect1.cornerRadius = 20;
+                rect1.color = "Orange";
+                rect1.thickness = 4;
+                rect1.background = "green";
+                rect1.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
+                rect1.top = "-40px"; // move button little over cannonfoot
+                rect1.left = "-140px"; // move button
+                //advancedTexture.addControl(rect1);
+    
+
+                label = new BABYLON.GUI.TextBlock();
+                label.text = "Smash \n " +point;
+                //rect1.addControl(label);
+
+                rect2 = new BABYLON.GUI.Rectangle();
+                rect2.width = 0.2;
+                rect2.height = "80px";
+                rect2.cornerRadius = 20;
+                rect2.color = "Orange";
+                rect2.thickness = 4;
+                rect2.background = "green";
+                rect2.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
+                rect2.top = "-40px"; // move button little over cannonfoot
+                rect2.left = "140px"; // move button
+                //advancedTexture.addControl(rect2);
+    
+
+                label1 = new BABYLON.GUI.TextBlock();
+                label1.text = "Life \n " +life;
+                //rect2.addControl(label1);
+            }
             
-    
-    
-	
-            //Hit cannon foot to shoot
-            /*
-            const boxMaterial = new BABYLON.StandardMaterial("material", scene);
-            boxMaterial.diffuseColor = BABYLON.Color3.Random();
-            cannonfoot.material = boxMaterial;
+            function gameScreenAddController() {
+                advancedTexture.addControl(button1); 
+                advancedTexture.addControl(rect1);
+                rect1.addControl(label);
+                advancedTexture.addControl(rect2);
+                rect2.addControl(label1);
 
-            cannonfoot.actionManager = new BABYLON.ActionManager(scene);
-            cannonfoot.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, 
-                function (evt) {
-                    const sourceBox = evt.meshUnderPointer;
-                    //sourceBox.position.x += 0.1;
-                    //sourceBox.position.y += 0.1;
-
-                    boxMaterial.diffuseColor = BABYLON.Color3.Random();
-
-                    //firebullet(power);
-                    //firebullet(power);
-                    //firebullet(power);
-                    //firebullet(power);
-                    //console.info("firebullet fired");
-                }));
-            */
+            }
 
             // Create the enemies
             //BABYLON.SceneLoader.Load("", "models/model/", "skull.obj", scene, function (newMeshes2, particleSystems2, skeletons2) {
@@ -284,12 +359,12 @@ var canvas = document.getElementById("renderCanvas");
             */
 
             //next to function works as same
-            var randomInteger = function(min, max) { 
+            function randomInteger(min, max) { 
                 return Math.floor(Math.random() * (max - min + 1)) + min;
             }
 
             //change the mesh effect // https://playground.babylonjs.com/#1MSIXB#4
-            var effectOnMesh = function(enemyObj) {
+            function effectOnMesh(enemyObj) {
                 var material_base = new BABYLON.StandardMaterial("mat", scene);
                 //material_base.diffuseTexture = new BABYLON.Texture("textures/misc.jpg", scene);
                 material_base.alpha = 0.9999;		// artificially set the material as alpha blended
@@ -310,7 +385,7 @@ var canvas = document.getElementById("renderCanvas");
 
             }
 
-            var createEnemy2 = function(name,x,y,z){
+            function createEnemy2(name,x,y,z){
                 //var enemyObj = BABYLON.MeshBuilder.CreateCylinder(name, { height: 0.5, diameter: 0.6, tessellation: 16 }, scene);
                 var enemyObj = BABYLON.Mesh.CreateCylinder(name, 3, 3, 0, 6, 1, scene, false);
                 enemyObj.material = new BABYLON.StandardMaterial("c6mat", scene);
@@ -327,22 +402,25 @@ var canvas = document.getElementById("renderCanvas");
                 return enemyObj;
             }
 
-            var createEnemy = function(name,x,y,z){
+            function createEnemy(name,x,y,z){
                 var enemyObj = BABYLON.Mesh.CreateCylinder(name, 3, 3, 0, 6, 1, scene, false);
                 enemyObj.material = new BABYLON.StandardMaterial("enemyMat", scene);
                 enemyObj.material.diffuseColor = new BABYLON.Color3(Math.random(), Math.random(), Math.random());
                 enemyObj.position.set(x,y,z);
                 enemyObj.physicsImpostor = new BABYLON.PhysicsImpostor(enemyObj, BABYLON.PhysicsImpostor.CylinderImpostor, { mass: 0, friction: 0.5, restition: 0.3 }, scene);
             
-                var moveSpeed = Math.random() * 5 + 5;//0.05 // randomly set movement speed for enemy
+                var moveSpeed = Math.random() * 0.5 + 0.55;//0.05 // randomly set movement speed for enemy
                 var approachInterval = Math.random() * 1000 + 1000;//1000 // randomly set time interval for enemy to approach player
-                console.info(name+"  :movespeed-"+moveSpeed+"  approachInterval "+ approachInterval);
+                //console.info(name+"  :movespeed-"+moveSpeed+"  approachInterval "+ approachInterval);
                 enemyObj.move = function() {
+                    var min = -0.1;
+                    var max = 0.1;
                     // move the enemy in random direction
                     var x = Math.random() * 0.2 - 0.1;
                     var z = Math.random() * 0.25 - 0.1; //0.23
+                 
                     this.position.addInPlace(new BABYLON.Vector3(x, 0, z));
-                    console.info(this+"-"+this.position);
+                    //console.info(this+"-"+this.position);
                     // calculate distance to player
                     var distance = BABYLON.Vector3.Distance(this.position, cannonfoot.position);
             
@@ -385,6 +463,7 @@ var canvas = document.getElementById("renderCanvas");
                         this.dispose();
                         //.dispose();
                         life -= 1;
+                        if(life <= 0) life = 0;
                         var index = enemy.indexOf(this);
                         if (index !== -1) {
                             enemy.splice(index, 1);
@@ -418,43 +497,36 @@ var canvas = document.getElementById("renderCanvas");
 
             
             
-            var moveEnemies = function() {
+            function moveEnemies() {
                 for (var i = 0; i < enemy.length; i++) {
                     enemy[i].move();
                 }
             };
 
             var enemy = [];
-            for(var i=0; i< enemyCount; i++){
-                
-                //randomInteger(-5,10)
-                enemy[i] = createEnemy("enemy"+i,randomInteger(-20,20),randomInteger(-15,20),-50);
-                //en.checkCollision = true;
-                enemy[i].setParent(webarStage);
-          
-                //enemy[i] = createEnemy();
-                //webarStage.addChild(createEnemy());
-                //scaleByFactor(enemy[i], 2);
-                
-            }
-        
-
-            // Pass babylon canvas, scene, camera and webarStage mesh to WebarSdk to initialize surface tracking
-            WEBARSDK.InitBabylonJs(canvas, scene, camera, webarStage);
-            WEBARSDK.SetAutoScale(false);
-
+            function generateEnemies() {
+                for(var i=0; i< enemyCount; i++){
+                    
+                    //randomInteger(-5,10)
+                    enemy[i] = createEnemy("enemy"+i,randomInteger(-20,20),randomInteger(-15,20),-80);
+                    //en.checkCollision = true;
+                    enemy[i].setParent(webarStage);
             
+                    //enemy[i] = createEnemy();
+                    //webarStage.addChild(createEnemy());
+                    //scaleByFactor(enemy[i], 2);
+                    
+                }
+            }
 
-            var power = 10;
-
-            var firebullet = function (power) {
+            function firebullet (power) {
                 var bullet = BABYLON.MeshBuilder.CreateSphere("Bullet", { segments: 3, diameter: 0.5}, scene);
                 bullet.position = cannontube.getAbsolutePosition();
                 //bullet.scale.y += 1.0;
                 bullet.isPickable = false; 
                 bullet.physicsImpostor = new BABYLON.PhysicsImpostor(bullet, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1, friction: 0.5, restition: 0.9 }, scene);
                 
-                bullet.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(1, 1, 10));
+                bullet.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(1, 1, -10));
                 //scaleByFactor(bullet, 0.4);
 
                 const sphereMaterial = new BABYLON.StandardMaterial("material", scene);
@@ -528,20 +600,104 @@ var canvas = document.getElementById("renderCanvas");
  
                 }
             }
+            
+            
+            // Create a game over screen
+            function createGameOverScreen () {
+                var iconImage = new BABYLON.GUI.Image("aero" + "_icon", "images/AERO.png");
+                iconImage.width = "80%";
+                iconImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+                iconImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                iconImage.top = "-250px";
 
-            for(var i = 0; i < enemy.length; i++)   {
-                //setInterval(()=> enemy[i].move("z",8,45),1000);    
+                var gameOverScreen = new BABYLON.GUI.Rectangle();
+                gameOverScreen.width = 0.8;
+                gameOverScreen.height = 0.4;
+                gameOverScreen.color = "black";
+                gameOverScreen.alpha = 0.8;
+                gameOverScreen.cornerRadius = 20;
+                gameOverScreen.thickness = 4;
+                gameOverScreen.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                gameOverScreen.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+            
+                var gameOverText = new BABYLON.GUI.TextBlock();
+                gameOverText.text = "Game Over!";
+                gameOverText.color = "white";
+                gameOverText.fontSize = 48;
+                gameOverText.top = "-40px";
+                gameOverText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                gameOverText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+            
+                var restartButton = BABYLON.GUI.Button.CreateSimpleButton("restartButton", "Restart");
+                restartButton.width = 0.4;
+                restartButton.height = "60px";
+                restartButton.color = "white";
+                restartButton.cornerRadius = 20;
+                restartButton.background = "green";
+                restartButton.top = "40px";
+                restartButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                restartButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                restartButton.onPointerUpObservable.add(function() {
+                    // Restart the game
+                    //gamescreenEnable = false;
+                    //gameOverScreen.dispose();
+                    //iconImage.dispose();
+                    //menuScreen();
+                });              
                 
-                //setInterval(()=> enemy[i].position.z +=0.1 ,1000);     
+                gameOverScreen.addControl(gameOverText);
+                gameOverScreen.addControl(restartButton);
 
-   
-            }
-            //setInterval(()=> enemy[0].position.z +=8 ,1000);
+                var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+                //var gameOverScreen = createGameOverScreen();
+                advancedTexture.addControl(iconImage); 
+                advancedTexture.addControl(gameOverScreen);
+                
+                //return gameOverScreen;
+            };
+            
+            // Show the game over screen
+            function showGameOverScreen () {
+                var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+                var gameOverScreen = createGameOverScreen();
+                advancedTexture.addControl(gameOverScreen);
+            };
+            
+  
             
             scene.registerBeforeRender(function (){ 
+                
+                if(gamescreenEnable == true && tracking == false){
+                    //WEBARSDK.Init();
+                    //WEBARSDK.StartTracking(true);
+                    //WEBARSDK.DisableTracking(false);
+                    //WEBARSDK.StopTracking(true);
+
+                    //gameScreen();
+                    gameScreenAddController();
+                    generateEnemies();
+                    tracking = true;
+                    gamescreenEnable = false;
+                    console.info(" startTracking");
+                    
+                }
+                if(stageReadyVariable == 1 && gamescreenEnable == false)  {
+                    instruction.text = 'press play to continue';
+                    startButton.background = "green";
+                }
+                
                 if(stageReadyVariable == 1)  {
                     //console.info("render before"); 
 
+                    
+                    if(life <= 0 && gameOverCheck == true) {
+                        for(var i=0; i<enemy.length; i++) {
+                            enemy[i].dispose();
+                            gameOverCheck = false;
+                        }
+                        //showGameOverScreen();
+                        createGameOverScreen();
+                    }
                     label.text = "Smash \n " +point;
                     label1.text = "Life \n " +life;
 
@@ -577,79 +733,29 @@ var canvas = document.getElementById("renderCanvas");
                 }
             });
 
-            var enemyMoveInterval = 60; // enemy moves every 60 frames
-        var enemyMoveCountdown = enemyMoveInterval;
-        var enemySpeed = 0.1; // enemy moves 0.1 units per frame
-
-        var moveEnemy = function(enemyObj) {
-        enemyObj.position.z += enemySpeed;
-        if (enemyMoveCountdown <= 0) {
-            // move enemy in a random direction
-            var x = (Math.random() - 0.5) * 2 * 10; // move in range of -10 to 10 in x direction
-            var y = (Math.random() - 0.5) * 2 * 10; // move in range of -10 to 10 in y direction
-            enemyObj.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(x, y, enemySpeed));
-            enemyMoveCountdown = enemyMoveInterval;
-        } else {
-            enemyMoveCountdown--;
-        }
-        };
-
-        // update enemy positions at every frame
-
-
-            var moveEnemy1 = function(enemy) {
-                var maxDist = 20;
-                var minDist = 10;
-                var moveSpeed = 0.05;
-                var angleSpeed = 0.02;
-                
-                var x = enemy.position.x + Math.random() * moveSpeed - moveSpeed / 2;
-                var y = enemy.position.y;
-                var z = enemy.position.z + Math.random() * moveSpeed - moveSpeed / 2;
-                
-                var distance = Math.sqrt((x - cannontube.position.x) * (x - cannontube.position.x) + (y - cannontube.position.y) * (y - cannontube.position.y) + (z - cannontube.position.z) * (z - cannontube.position.z));
-                
-                if (distance > maxDist) {
-                    x = enemy.position.x + (cannontube.position.x - enemy.position.x) * moveSpeed / distance;
-                    z = enemy.position.z + (cannontube.position.z - enemy.position.z) * moveSpeed / distance;
-                }
-                else if (distance < minDist) {
-                    x = enemy.position.x - (cannontube.position.x - enemy.position.x) * moveSpeed / distance;
-                    z = enemy.position.z - (cannontube.position.z - enemy.position.z) * moveSpeed / distance;
-                }
-                
-                var dx = x - enemy.position.x;
-                var dz = z - enemy.position.z;
-                var angle = Math.atan2(dz, dx);
-                var diff = angle - enemy.rotation.y;
-                while (diff < -Math.PI) diff += Math.PI * 2;
-                while (diff > Math.PI) diff -= Math.PI * 2;
-                if (Math.abs(diff) > angleSpeed) {
-                    var sign = diff > 0 ? 1 : -1;
-                    enemy.rotation.y += sign * angleSpeed;
-                }
-                else {
-                    enemy.rotation.y = angle;
-                }
-                
-                enemy.position.set(x, y, z);
-                
-                if (cannontube.intersectsMesh(enemy, true)) {
-                    // reduce player health
-                    console.info("enemy intersect");
-                }
-            }
             
             scene.registerAfterRender(function() {
-                /*for (var i = 0; i < enemy.length; i++) {
-                    moveEnemy(enemy[i]);
-                    console.info("enenmy"+i+" After render move");
-                }*/
+
             });
             
-                return scene;
+            
+            menuScreen();
+            
+            gameElements();
+            gameScreen();
+            //generateEnemies();
+            // Pass babylon canvas, scene, camera and webarStage mesh to WebarSdk to initialize surface tracking
+            //WEBARSDK.Init();
+            WEBARSDK.InitBabylonJs(canvas, scene, camera, webarStage);
+            WEBARSDK.SetAutoScale(false);
+
+            WEBARSDK.SetWebARMode("surface-tracking");//
+            WEBARSDK.StartTracking();
+            
+            return scene;
         };
 
+        /*
         var sparksystem = null;
         var smokesystem = null;
 
@@ -669,6 +775,7 @@ var canvas = document.getElementById("renderCanvas");
                 system.emitter = sphereSmoke;
             });
         };
+        */
 
         window.initFunction = async function() {
             var asyncEngineCreation = async function() {
@@ -691,6 +798,7 @@ var canvas = document.getElementById("renderCanvas");
                 engine.runRenderLoop(function () {
                     if (sceneToRender && sceneToRender.activeCamera) {
                         sceneToRender.render();
+                        
                     }
                 });
             });
@@ -703,6 +811,8 @@ var canvas = document.getElementById("renderCanvas");
         WEBARSDK.SetStageReadyCallback(() => {
             console.info('Stage is ready now!!!');
             stageReadyVariable = 1;
+            
+
             /*
             // Start spark and smoke particles
             var toggleCounter = 0;
@@ -729,3 +839,15 @@ var canvas = document.getElementById("renderCanvas");
             3000);
             */
         });
+
+        WEBARSDK.SetTrackingStartedCallback(() =>{
+            console.info('Tracking has started');
+         });
+
+         WEBARSDK.SetTrackingStoppedCallback(() =>{
+            console.info('Tracking has stopped');
+         });
+
+         WEBARSDK.SetTrackingQualityChangeCallback((trackingQuality) =>{
+            console.info('Tracking quality: ', trackingQuality);
+         });
