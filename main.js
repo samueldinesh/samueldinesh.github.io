@@ -7,10 +7,15 @@ var canvas = document.getElementById("renderCanvas");
         var gamescreenEnable = false;
         var tracking = false;
 
-        var point =0;
-        var life = 5;
+        var point = 0;
+        var oldPoint = 0;
+
+        var life = 12;
 
         var enemyCount = 15;
+
+        var count = 60;
+        
         var scaleByFactor = function(obj, factor) {
             obj.scaling.x = obj.scaling.x * factor;
             obj.scaling.y = obj.scaling.y * factor;
@@ -253,8 +258,11 @@ var canvas = document.getElementById("renderCanvas");
             var button1 = null;
             var rect1 = null;
             var rect2 = null;
+            var rect3 = null;
             var label = null;
-            var label2 = null;
+            var label1 = null;
+
+            var timeBlock = null;
 
             function gameScreen(){
                 // GUI
@@ -311,6 +319,24 @@ var canvas = document.getElementById("renderCanvas");
                 label1 = new BABYLON.GUI.TextBlock();
                 label1.text = "Life \n " +life;
                 //rect2.addControl(label1);
+
+                timeBlock = new BABYLON.GUI.TextBlock('TextBlock', '120'); 
+
+                rect3 = new BABYLON.GUI.Rectangle();
+                rect3.width = 0.1;
+                rect3.horizontalAlignment = 0;
+                rect3.verticalAlignment = 0;
+                rect3.height = "40px";
+                rect3.cornerRadius = 30;
+                rect3.color = "orange";
+                rect3.thickness = 4;
+                rect3.background = "green";
+                rect3.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP; 
+                rect3.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER; 
+                rect3.top = "20px"; // move button little over cannonfoot
+                //rect3.left = "140px"; // move button
+                
+                
             }
             
             function gameScreenAddController() {
@@ -319,6 +345,8 @@ var canvas = document.getElementById("renderCanvas");
                 rect1.addControl(label);
                 advancedTexture.addControl(rect2);
                 rect2.addControl(label1);
+                advancedTexture.addControl(rect3);
+                rect3.addControl(timeBlock);
 
             }
 
@@ -402,6 +430,32 @@ var canvas = document.getElementById("renderCanvas");
                 return enemyObj;
             }
 
+            function particleBlast(obj){
+                var particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
+                        particleSystem.particleTexture = new BABYLON.Texture("textures/Flare.png", scene);
+                        particleSystem.emitter = obj;
+                        particleSystem.minEmitBox = new BABYLON.Vector3(-1, 0, -1);
+                        particleSystem.maxEmitBox = new BABYLON.Vector3(1, 0, 1);
+                        particleSystem.color1 = new BABYLON.Color4(1, 0.5, 0, 1.0);
+                        particleSystem.color2 = new BABYLON.Color4(1, 0.5, 0, 1.0);
+                        particleSystem.colorDead = new BABYLON.Color4(0, 0, 0, 0.0);
+                        particleSystem.minSize = 0.3;
+                        particleSystem.maxSize = 1.5;
+                        particleSystem.minLifeTime = 0.3;
+                        particleSystem.maxLifeTime = 1.5;
+                        particleSystem.emitRate = 1000;
+                        particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+                        particleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
+                        particleSystem.direction1 = new BABYLON.Vector3(-1, 1, -1);
+                        particleSystem.direction2 = new BABYLON.Vector3(1, 1, 1);
+                        particleSystem.minAngularSpeed = 0;
+                        particleSystem.maxAngularSpeed = Math.PI;
+                        particleSystem.minEmitPower = 1;
+                        particleSystem.maxEmitPower = 3;
+                        particleSystem.updateSpeed = 0.005;
+                        particleSystem.start();
+                        
+            }
             function createEnemy(name,x,y,z){
                 var enemyObj = BABYLON.Mesh.CreateCylinder(name, 3, 3, 0, 6, 1, scene, false);
                 enemyObj.material = new BABYLON.StandardMaterial("enemyMat", scene);
@@ -412,6 +466,8 @@ var canvas = document.getElementById("renderCanvas");
                 var moveSpeed = Math.random() * 0.5 + 0.55;//0.05 // randomly set movement speed for enemy
                 var approachInterval = Math.random() * 1000 + 1000;//1000 // randomly set time interval for enemy to approach player
                 //console.info(name+"  :movespeed-"+moveSpeed+"  approachInterval "+ approachInterval);
+
+
                 enemyObj.move = function() {
                     var min = -0.1;
                     var max = 0.1;
@@ -436,39 +492,32 @@ var canvas = document.getElementById("renderCanvas");
                     // if distance to player is less than 10 units, explode the enemy
                     if (distance < 10) {
                         console.info("  attack....")
-                        /*var particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
-                        particleSystem.particleTexture = new BABYLON.Texture("textures/Flare.png", scene);
-                        particleSystem.emitter = this;
-                        particleSystem.minEmitBox = new BABYLON.Vector3(-1, 0, -1);
-                        particleSystem.maxEmitBox = new BABYLON.Vector3(1, 0, 1);
-                        particleSystem.color1 = new BABYLON.Color4(1, 0.5, 0, 1.0);
-                        particleSystem.color2 = new BABYLON.Color4(1, 0.5, 0, 1.0);
-                        particleSystem.colorDead = new BABYLON.Color4(0, 0, 0, 0.0);
-                        particleSystem.minSize = 0.3;
-                        particleSystem.maxSize = 1.5;
-                        particleSystem.minLifeTime = 0.3;
-                        particleSystem.maxLifeTime = 1.5;
-                        particleSystem.emitRate = 1000;
-                        particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
-                        particleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
-                        particleSystem.direction1 = new BABYLON.Vector3(-1, 1, -1);
-                        particleSystem.direction2 = new BABYLON.Vector3(1, 1, 1);
-                        particleSystem.minAngularSpeed = 0;
-                        particleSystem.maxAngularSpeed = Math.PI;
-                        particleSystem.minEmitPower = 1;
-                        particleSystem.maxEmitPower = 3;
-                        particleSystem.updateSpeed = 0.005;
-                        particleSystem.start();
-                        */
-                        this.dispose();
+                        
+                        //this.dispose();
                         //.dispose();
+                        if (this.position.y <= 0) {
+                            this.position.addInPlace(new BABYLON.Vector3(0, -10, 0));
+                        } else {
+                            this.position.addInPlace(new BABYLON.Vector3(0, 10, 0));
+                        }
                         life -= 1;
                         if(life <= 0) life = 0;
+
                         var index = enemy.indexOf(this);
-                        if (index !== -1) {
-                            enemy.splice(index, 1);
-                            console.log(enemy); // output the enemy array
+                        console.info("enemy "+index+"  attack....")
+                        particleBlast(enemy[index]);
+                        if(enemy[index].physicsImpostor){
+                            enemy[index].physicsImpostor.dispose()
                         }
+                        enemy[index].dispose();
+                        
+                        if (index !== -1) {
+                            enemy[index] = null;
+                            enemy.splice(index, 1);
+                            for(var c=0; c<enemy.length; c++) 
+                                console.log(enemy[c].id); // output the enemy array
+                        }
+                        
                         console.info("enemy length: "+ enemy.length);
                     }
                     // if distance to player is less than 10 units, move the enemy towards the player
@@ -508,7 +557,7 @@ var canvas = document.getElementById("renderCanvas");
                 for(var i=0; i< enemyCount; i++){
                     
                     //randomInteger(-5,10)
-                    enemy[i] = createEnemy("enemy"+i,randomInteger(-20,20),randomInteger(-15,20),-80);
+                    enemy[i] = createEnemy("enemy"+i,randomInteger(-20,20),randomInteger(-15,20),randomInteger(-60,-80));
                     //en.checkCollision = true;
                     enemy[i].setParent(webarStage);
             
@@ -549,7 +598,10 @@ var canvas = document.getElementById("renderCanvas");
 
                 bullet.physicsImpostor.onCollideEvent = (e, t)=>{
                     console.info("bullet collide-",e,t)
-                    castRay(bullet);
+                    console.info(t.object.name);
+                    t.object.dispose();
+                    point +=1;
+                    //castRay(bullet);
                 }
 
                 scene.onBeforeRenderObservable.add(bullet.step)   
@@ -588,8 +640,10 @@ var canvas = document.getElementById("renderCanvas");
                 //hit.pickedMesh.scaling.y += 0.1;
                 console.info("hit   picked  ");
                 console.log(hit.pickedMesh.name);
-                hit.pickedMesh.dispose();
-                
+                if (hit.pickedMesh.name != "Tube"){
+                    hit.pickedMesh.dispose();
+                }
+                   
                 point +=1;
 
 
@@ -654,15 +708,7 @@ var canvas = document.getElementById("renderCanvas");
                 advancedTexture.addControl(gameOverScreen);
                 
                 //return gameOverScreen;
-            };
-            
-            // Show the game over screen
-            function showGameOverScreen () {
-                var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-                var gameOverScreen = createGameOverScreen();
-                advancedTexture.addControl(gameOverScreen);
-            };
-            
+            };      
   
             
             scene.registerBeforeRender(function (){ 
@@ -690,10 +736,11 @@ var canvas = document.getElementById("renderCanvas");
                     //console.info("render before"); 
 
                     
-                    if(life <= 0 && gameOverCheck == true) {
+                    if(life <= 0 && gameOverCheck == true || Math.floor(count) <= 0 && gameOverCheck == true) {
                         for(var i=0; i<enemy.length; i++) {
                             enemy[i].dispose();
                             gameOverCheck = false;
+                            //tracking = false;
                         }
                         //showGameOverScreen();
                         createGameOverScreen();
@@ -705,10 +752,7 @@ var canvas = document.getElementById("renderCanvas");
                         enemy[i].rotation.x = -Math.PI / 2; 
                     }*/
                     moveEnemies();
-                    /*for (var i = 0; i < enemy.length; i++) {
-                        moveEnemy(enemy[i]);
-                        console.info("enenmy"+i+" before render move");
-                    }*/
+
                         
                     /*try{
                         //const pos_mat  = WEBARSDK.GetCurrentPose();
@@ -732,10 +776,41 @@ var canvas = document.getElementById("renderCanvas");
                     */
                 }
             });
+              
+            const asynXPFlash = async function () {
+                var advancedTextureInRender = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
 
-            
+                // Adding image
+                var xpImage = new BABYLON.GUI.Image("xp" + "_icon", "images/xp.png");
+                xpImage.width = "50%";
+                xpImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+                xpImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+                xpImage.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+                xpImage.top = "-300px";
+                xpImage.left = "60px";
+                advancedTextureInRender.addControl(xpImage); 
+                await BABYLON.Tools.DelayAsync(1000);
+                xpImage.dispose();
+            };
+              
+ 
             scene.registerAfterRender(function() {
+                if(point != oldPoint){
+                    asynXPFlash();
+                    oldPoint = point;
+                }
 
+            });
+
+            scene.onBeforeRenderObservable.add((thisScene, state) => {
+                if(tracking == true && Math.round(count) > 0 ) {
+                    //console.info("Count - ");
+                    if (!thisScene.deltaTime) return;
+                    //console.info(count);
+                    count -= (thisScene.deltaTime / 1000);
+                    //if(count <= 0) return;
+                    timeBlock.text = String(Math.round(count));
+                }
             });
             
             
