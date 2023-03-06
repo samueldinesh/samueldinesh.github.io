@@ -6,12 +6,14 @@ var canvas = document.getElementById("renderCanvas");
         var stageReadyVariable = 0;
         var gamescreenEnable = false;
         var tracking = false;
+        var gameOverCheck = false;
 
         var point = 0;
         var oldPoint = 0;
 
         var life = 12;
 
+        var shootCounter = 0;
         var enemyCount = 15;
 
         var count = 60;
@@ -225,7 +227,7 @@ var canvas = document.getElementById("renderCanvas");
 
                 itarg = BABYLON.Mesh.CreateBox("targ", 0.5, scene);
                 itarg.position.y = 3;
-                itarg.visibility = .8;
+                itarg.visibility = .1;
                 itarg.parent = cannontube;
                 //scaleByFactor(itarg, 0.5);
 
@@ -253,6 +255,9 @@ var canvas = document.getElementById("renderCanvas");
                     cannontube.position.addInPlace(new BABYLON.Vector3(0, 0, 1));
                     cannontube.rotation.addInPlace(new BABYLON.Vector3(Math.PI/12, 0, 0));
 
+                    cannonfoot.visibility = 0;
+                    cannontube.visibility = 0;
+
                 }
             }
             var button1 = null;
@@ -275,7 +280,7 @@ var canvas = document.getElementById("renderCanvas");
                 button1.cornerRadius = 20;
                 button1.background = "red";
                 button1.onPointerDownObservable.add(function() {
-                    //alert("you did it!");
+                    shootCounter += 1;
                     var power = 10;
                     firebullet(power);
                     bombSound.play();
@@ -340,6 +345,10 @@ var canvas = document.getElementById("renderCanvas");
             }
             
             function gameScreenAddController() {
+
+                cannonfoot.visibility = 1;
+                cannontube.visibility = 1;
+
                 advancedTexture.addControl(button1); 
                 advancedTexture.addControl(rect1);
                 rect1.addControl(label);
@@ -655,55 +664,100 @@ var canvas = document.getElementById("renderCanvas");
                 }
             }
             
+            function destroyGameElement() {
+                cannonfoot.dispose();
+                cannontube.dispose();
+                rect1.dispose();
+                rect2.dispose();
+                rect3.dispose();
+                button1.dispose();
+            }
             
             // Create a game over screen
-            function createGameOverScreen () {
+            function gameOverScreen () {
                 var iconImage = new BABYLON.GUI.Image("aero" + "_icon", "images/AERO.png");
                 iconImage.width = "80%";
                 iconImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
                 iconImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                iconImage.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
                 iconImage.top = "-250px";
 
                 var gameOverScreen = new BABYLON.GUI.Rectangle();
-                gameOverScreen.width = 0.8;
+                gameOverScreen.width = 1;
                 gameOverScreen.height = 0.4;
-                gameOverScreen.color = "black";
-                gameOverScreen.alpha = 0.8;
+                gameOverScreen.color = "red";
+                gameOverScreen.alpha = 0.9;
                 gameOverScreen.cornerRadius = 20;
-                gameOverScreen.thickness = 4;
+                gameOverScreen.thickness = 10;
+                gameOverScreen.background = "green";
                 gameOverScreen.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                 gameOverScreen.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
             
+                var xpText = new BABYLON.GUI.TextBlock();
+                xpText.text = "XP\n"+(point*10);
+                xpText.color = "orange";
+                xpText.fontSize = 25;
+                xpText.top = "-40px";
+                xpText.left = "-140px";
+                xpText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                xpText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+                
+                var shootText = new BABYLON.GUI.TextBlock();
+                shootText.text = "Shoot\n"+shootCounter;
+                shootText.color = "orange";
+                shootText.fontSize = 25;
+                shootText.top = "-40px";
+                shootText.left = "0px";
+                shootText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                shootText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+                if (shootCounter <= 0) shootCounter = 1;
+                var accuracy = Math.round((point/shootCounter)*100);
+
+                var accuracyText = new BABYLON.GUI.TextBlock();
+                accuracyText.text = "Accuracy\n"+accuracy + "%";
+                accuracyText.color = "orange";
+                accuracyText.fontSize = 25;
+                accuracyText.top = "-40px";
+                accuracyText.left = "130px";
+                accuracyText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                accuracyText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+
                 var gameOverText = new BABYLON.GUI.TextBlock();
-                gameOverText.text = "Game Over!";
+                gameOverText.text = "Let's Play Again!";
                 gameOverText.color = "white";
-                gameOverText.fontSize = 48;
-                gameOverText.top = "-40px";
+                gameOverText.fontSize = 25;
+                gameOverText.top = "40px";
                 gameOverText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
                 gameOverText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
             
-                var restartButton = BABYLON.GUI.Button.CreateSimpleButton("restartButton", "Restart");
+                var restartButton = BABYLON.GUI.Button.CreateSimpleButton("restartButton", "Continue");
                 restartButton.width = 0.4;
                 restartButton.height = "60px";
-                restartButton.color = "white";
+                restartButton.color = "black";
                 restartButton.cornerRadius = 20;
-                restartButton.background = "green";
-                restartButton.top = "40px";
-                restartButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                restartButton.background = "red";
+                restartButton.top = "0px";
+                restartButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
                 restartButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                 restartButton.onPointerUpObservable.add(function() {
+                    alert("refresh page to play again");
                     // Restart the game
                     //gamescreenEnable = false;
                     //gameOverScreen.dispose();
                     //iconImage.dispose();
                     //menuScreen();
-                });              
+                });         
                 
+                
+                gameOverScreen.addControl(xpText);
+                gameOverScreen.addControl(shootText);
+                gameOverScreen.addControl(accuracyText);
                 gameOverScreen.addControl(gameOverText);
                 gameOverScreen.addControl(restartButton);
 
                 var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-                //var gameOverScreen = createGameOverScreen();
+                //var gameOverScreen = gameOverScreen();
                 advancedTexture.addControl(iconImage); 
                 advancedTexture.addControl(gameOverScreen);
                 
@@ -743,7 +797,11 @@ var canvas = document.getElementById("renderCanvas");
                             //tracking = false;
                         }
                         //showGameOverScreen();
-                        createGameOverScreen();
+                        destroyGameElement();
+                        gameOverScreen();
+                    }else if( enemy.length <= 0 && gameOverCheck == true){
+                        destroyGameElement();
+                        gameOverScreen();
                     }
                     label.text = "Smash \n " +point;
                     label1.text = "Life \n " +life;
