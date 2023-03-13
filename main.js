@@ -11,12 +11,14 @@ var canvas = document.getElementById("renderCanvas");
         var point = 0;
         var oldPoint = 0;
 
-        var life = 12;
+        var life = 5;
 
         var shootCounter = 0;
-        var enemyCount = 15;
+        var enemyCount = 30;
 
-        var count = 60;
+        var timecount = 90;
+
+        var musicStatus = true;
         
         var scaleByFactor = function(obj, factor) {
             obj.scaling.x = obj.scaling.x * factor;
@@ -38,7 +40,8 @@ var canvas = document.getElementById("renderCanvas");
             //camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
 
             //Added for shooting from drone - for dev 
-            var gravityVector = new BABYLON.Vector3(0,-9.81, 0);
+            //var gravityVector = new BABYLON.Vector3(0,-9.81, 0);
+            var gravityVector = new BABYLON.Vector3(0,-1, 0);
             var physicsPlugin = new BABYLON.CannonJSPlugin();
             scene.enablePhysics(gravityVector, physicsPlugin);
 
@@ -48,10 +51,12 @@ var canvas = document.getElementById("renderCanvas");
                     loop: true, 
                    autoplay: true,
                    spatialSound: true,
+                   
                 }
              );
+             //music.setVolume(0,3);
 
-            const bombSound = new BABYLON.Sound("bombSound", "music/silenced-gun.mp3", scene);
+            const bombSound = new BABYLON.Sound("bombSound", "music/silenced-gun.mp3", scene, null,{volume:0.5});
 
             var light = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(5, 10, -2), scene);
             light.intensity = 0.7;
@@ -66,12 +71,22 @@ var canvas = document.getElementById("renderCanvas");
                 //var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
 
                 // Adding image
-                var iconImage = new BABYLON.GUI.Image("aero" + "_icon", "images/AERO.png");
-                iconImage.width = "80%";
+                var iconImage = new BABYLON.GUI.Image("aero" + "_icon", "images/5.png");
+                iconImage.width = 1;
                 iconImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
                 iconImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                iconImage.top = "-250px";
+                iconImage.top = "-260px";
                 advancedTexture.addControl(iconImage); 
+
+                var menuImage = new BABYLON.GUI.Image("aero" + "_icon", "images/7.png");
+                menuImage.width = 1.2;
+                menuImage.height = 1.2;
+                //menuImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+                menuImage.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+                menuImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                menuImage.top = "200px";
+                advancedTexture.addControl(menuImage); 
+
 
                 // create a header label for the menu
                 var header = new BABYLON.GUI.TextBlock();
@@ -92,12 +107,12 @@ var canvas = document.getElementById("renderCanvas");
     
                 // create a start button for the menu
                 startButton = BABYLON.GUI.Button.CreateSimpleButton("Play", "Play");
-                startButton.width = "200px";
-                startButton.height = "50px";
+                startButton.width = "150px";
+                startButton.height = "60px";
                 startButton.color = "white";
                 startButton.cornerRadius = 20;
                 startButton.background = "gray";
-                startButton.top = "150px";
+                startButton.top = "100px";
                 startButton.onPointerUpObservable.add(function() {
                     // start the game when the button is clicked
                     if( stageReadyVariable == 1){
@@ -105,7 +120,47 @@ var canvas = document.getElementById("renderCanvas");
                     }
                     
                 });
+
+                // create a start button for the menu
+                instructionsButton = BABYLON.GUI.Button.CreateSimpleButton("Instructions", "Instructions");
+                instructionsButton.width = "150px";//200
+                instructionsButton.height = "60px";//100
+                instructionsButton.color = "white";
+                instructionsButton.cornerRadius = 20;
+                instructionsButton.background = "#46209F";//"blue";
+                instructionsButton.top = "200px";
+                instructionsButton.onPointerUpObservable.add(function() {
+                    instructionPage();
+                    
+                });
+
+                // create a start button for the menu
+                soundButton = BABYLON.GUI.Button.CreateSimpleButton("Sound", "Sound : On");
+                soundButton.width = "150px";
+                soundButton.height = "60px";
+                soundButton.color = "white";
+                soundButton.cornerRadius = 20;
+                soundButton.background = "#46209F";
+                soundButton.top = "300px";
+                soundButton.onPointerUpObservable.add(function() {
+                    if (musicStatus == true){
+                        music.setVolume(0,1);
+                        soundButton.textBlock.text = "Sound : Off";
+                        soundButton.background = "gray";
+                        musicStatus = false;
+                    }
+                    else{
+                        music.setVolume(1,1);
+                        soundButton.textBlock.text = "Sound : On";
+                        soundButton.background = "#46209F";
+                        musicStatus = true;
+                    }
+                    
+                });
+               
                 advancedTexture.addControl(startButton);
+                advancedTexture.addControl(instructionsButton);
+                advancedTexture.addControl(soundButton);
                 
                 /*
                 // create a quit button for the menu
@@ -129,15 +184,75 @@ var canvas = document.getElementById("renderCanvas");
                     header.dispose();
                     instruction.dispose();
                     startButton.dispose();
+                    instructionsButton.dispose();
+                    soundButton.dispose();
+                    menuImage.dispose();
                     gameOverCheck = true;
 
                     gamescreenEnable = true;
                 }
 
             }
+
+            function instructionPage(){
+
+                var instructionPageScreen = new BABYLON.GUI.Rectangle();
+                instructionPageScreen.width = 1;
+                instructionPageScreen.height = 0.4;
+                instructionPageScreen.color = "#C8099B";
+                instructionPageScreen.alpha = 0.9;
+                instructionPageScreen.cornerRadius = 20;
+                instructionPageScreen.thickness = 10;
+                instructionPageScreen.background = "#46209F";
+                instructionPageScreen.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                instructionPageScreen.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                instructionPageScreen.top = "50px";
+
+                var instructionPageHeading = new BABYLON.GUI.TextBlock();
+                instructionPageHeading.text = "Instructions";
+                instructionPageHeading.color = "White";
+                instructionPageHeading.fontSize = 40;
+                instructionPageHeading.top = "-110px";
+                //instructionPageHeading.left = "-140px";
+                instructionPageHeading.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                instructionPageHeading.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+                var InstructionInfo = new BABYLON.GUI.TextBlock();
+                InstructionInfo.text = "Press Fire to Shoot the ghost to win XP.\n\nTimer will run out, keep your eye on the top.\n\nLife will reduced when ghost attacks the player";
+                InstructionInfo.color = "white";
+                InstructionInfo.fontSize = 16;
+                InstructionInfo.top = "0px";
+                InstructionInfo.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                InstructionInfo.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+            
+                var okButton = BABYLON.GUI.Button.CreateSimpleButton("okButton", "Ok");
+                okButton.width = 0.3;
+                okButton.height = "60px";
+                okButton.color = "White";
+                okButton.cornerRadius = 20;
+                okButton.background = "#C8099B";
+                //okButton.top = "0px";
+                //okButton.left = "-60px";
+                okButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+                okButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                okButton.onPointerUpObservable.add(function() {
+                    instructionPageScreen.dispose();
+                });            
+                
+                advancedTexture.addControl(instructionPageScreen);
+                instructionPageScreen.addControl(instructionPageHeading);
+                instructionPageScreen.addControl(InstructionInfo);
+                instructionPageScreen.addControl(okButton);
+            }
+
+
+
+
+            var gun = [];
             var cannonfoot = null;
             var cannontube = null;
             var itarg = null;
+            var pointer = null;
             function gameElements() {
                 // Create an empty webarStage mesh. Models/meshes appended as a children to this webarStage mesh will be displayed on the surface.
                 webarStage = new BABYLON.Mesh("webarStage", scene);
@@ -173,38 +288,49 @@ var canvas = document.getElementById("renderCanvas");
                 // After the complete scene is ready, it is models under __root_ node are moved to webarStage mesh
                 // to appear on the surface
                 //BABYLON.SceneLoader.ImportMesh(['Object_2'], "./models/", "oscar_trophy.glb", scene, function (meshes, particleSystems, skeletons) {
-                /*BABYLON.SceneLoader.ImportMesh('', "./models/model/", "drone.babylon", scene, function (meshes, particleSystems, skeletons) {
+                    //['Object_8']
+                /*BABYLON.SceneLoader.ImportMesh("", "./models/model/", "gun.glb", scene, function (meshes, particleSystems, skeletons) {
                 
                     let xQuat = new BABYLON.Quaternion();
                     BABYLON.Quaternion.FromEulerAnglesToRef(Math.PI / 2, 0, 0, xQuat);
 
                     for (mesh of meshes) {
+                        console.info(mesh.name);
                         if (mesh.name !== '__root__') {
                             // Move the loaded models to webarStage
                             mesh.setParent(webarStage);
-                            mesh.rotationQuaternion.multiplyInPlace(xQuat);
+                            //mesh.rotationQuaternion.multiplyInPlace(xQuat);
 
-                            scaleByFactor(mesh, 0.0375);
+                            //scaleByFactor(mesh, 0.0375);
                         }
                     }
                 });*/
+                
 
                 //BABYLON.SceneLoader.ImportMesh("", "./models/model/", "drone.babylon", scene, function (newMeshes) {
-                /*BABYLON.SceneLoader.ImportMesh("", "./models/model/", "bee.glb", scene, function (newMeshes) {
-                        //var _i=0;
+                /*BABYLON.SceneLoader.ImportMesh("", "./models/model/", "ghost.glb", scene, function (newMeshes) {
+                        var _i=0;
                         //newMeshes[0].setParent(webarStage);
 
-
+                    var xm=[];
                     for (mesh of newMeshes){
-                        mesh.setParent(webarStage);
-                        //_i += 1;
-                        //console.info(_i);
-                        //scaleByFactor(mesh, 0.5);
+                        xm[_i]=mesh;
+                        
+                        _i += 1;
+                        console.info(_i);
+                        scaleByFactor(xm[_i], 0.0001);
                     }
-                //var buggy2 = newMeshes[0];
+                    xm[0].setParent(webarStage);
+                    xm[0].position.set(buggy2.position.x,buggy2.position.y,10)
+                /var buggy2 = newMeshes[1];
         
                 //camera.target = buggy2;
-                // buggy2.setParent(webarStage);
+                //buggy2.setParent(camera);
+                //buggy2.rotation.set(3*Math.PI/2, Math.PI, 0);
+                //buggy2.position.set(buggy2.position.x,buggy2.position.y,-5)
+                //scaleByFactor(buggy2, 0.00009);
+                //
+                
         
 
                 //var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
@@ -221,16 +347,41 @@ var canvas = document.getElementById("renderCanvas");
                 //cannonfoot.rotation.set(0, 7*Math.PI/8, 0);
                 scaleByFactor(cannonfoot, 2);
                 
-                cannontube = BABYLON.MeshBuilder.CreateCylinder("Tube", { height: 1, diameter: 0.4, tessellation: 16 }, scene);
+                cannontube = BABYLON.MeshBuilder.CreateCylinder("Tube", { height: 1, diameter: 0.2, tessellation: 16 }, scene);
                 cannontube.position.set(0, 0, 0);
                 //scaleByFactor(cannontube, 2);
 
                 itarg = BABYLON.Mesh.CreateBox("targ", 0.5, scene);
                 itarg.position.y = 3;
-                itarg.visibility = .1;
+                
+                itarg.visibility = .01;
                 itarg.parent = cannontube;
                 //scaleByFactor(itarg, 0.5);
 
+                
+                BABYLON.SceneLoader.ImportMesh("", "./models/model/", "gun.glb", scene, function (meshes, particleSystems, skeletons) {
+                
+                    let xQuat = new BABYLON.Quaternion();
+                    BABYLON.Quaternion.FromEulerAnglesToRef(Math.PI / 2, 0, 0, xQuat);
+                    for (var i=0; i<meshes.length; i++) {
+                        var mesh = meshes[i];
+                        console.info(mesh.name);
+                        if (mesh.name !== '__root__') {
+                            // Move the loaded models to webarStage
+                            mesh.setParent(cannonfoot);
+                            //mesh.rotationQuaternion.multiplyInPlace(xQuat);
+                            mesh.rotation.set(180,0,0);
+                            mesh.position.set(0,0,-0.5);
+                            scaleByFactor(mesh, 0.1);
+
+                            cannontube.position.set(0,0,3);
+                            //itarg.position.set(0,0,1);
+                            //mesh.visibility=0;
+                            gun.push(mesh);//its not used anywhere, has issue in visibility
+                     
+                        }
+                    }
+                });
 
                 var objInXRStage = 0;
                 if(objInXRStage == 1){
@@ -246,6 +397,8 @@ var canvas = document.getElementById("renderCanvas");
 
                 }else{           
                     cannontube.rotation.set(3*Math.PI/2, 6*Math.PI/2, 0);
+                    //cannontube.rotation.set(0, 6*Math.PI/2, 0);
+                    //cannontube.rotation.set(3*Math.PI/2, 0, 0);
 
                     cannontube.parent = cannonfoot; 
 
@@ -266,6 +419,10 @@ var canvas = document.getElementById("renderCanvas");
             var rect3 = null;
             var label = null;
             var label1 = null;
+            var label2 = null;
+            var mesh = null;
+
+            var scoreImage = null;
 
             var timeBlock = null;
 
@@ -273,12 +430,22 @@ var canvas = document.getElementById("renderCanvas");
                 // GUI
                 //var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
+                scoreImage = new BABYLON.GUI.Image("14", "images/14.png");
+                scoreImage.width = 1.2;
+                scoreImage.height = 1.2;
+                //scoreImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+                scoreImage.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+                scoreImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                scoreImage.top = "100px";
+                
+                
+
                 button1 = BABYLON.GUI.Button.CreateSimpleButton("but1", "Fire");
-                button1.width = "150px"
-                button1.height = "80px";
+                button1.width = "160px"
+                button1.height = "100px";
                 button1.color = "white";
                 button1.cornerRadius = 20;
-                button1.background = "red";
+                button1.background = "#C8099B";
                 button1.onPointerDownObservable.add(function() {
                     shootCounter += 1;
                     var power = 10;
@@ -297,7 +464,7 @@ var canvas = document.getElementById("renderCanvas");
                 rect1.cornerRadius = 20;
                 rect1.color = "Orange";
                 rect1.thickness = 4;
-                rect1.background = "green";
+                rect1.background = "#46209F";
                 rect1.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
                 rect1.top = "-40px"; // move button little over cannonfoot
                 rect1.left = "-140px"; // move button
@@ -314,7 +481,7 @@ var canvas = document.getElementById("renderCanvas");
                 rect2.cornerRadius = 20;
                 rect2.color = "Orange";
                 rect2.thickness = 4;
-                rect2.background = "green";
+                rect2.background = "#46209F";
                 rect2.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
                 rect2.top = "-40px"; // move button little over cannonfoot
                 rect2.left = "140px"; // move button
@@ -322,8 +489,20 @@ var canvas = document.getElementById("renderCanvas");
     
 
                 label1 = new BABYLON.GUI.TextBlock();
-                label1.text = "Life \n " +life;
+                label1.text = "Life \n" +"XXXXX";
+                //label1.text = "Life";// +"XXXXX";
+
+                //label2 = new BABYLON.GUI.TextBlock();
+                //label2.text = "XXXXX";
                 //rect2.addControl(label1);
+
+                /*mesh = BABYLON.MeshBuilder.CreateDisc('disc', { radius: 1 }, scene);
+                var mat = new BABYLON.StandardMaterial('disc-mat', scene);
+                var tex = new BABYLON.Texture('./images/heart.svg', scene, false, false);
+                tex.hasAlpha = true;
+                mat.opacityTexture = tex;
+                mat.emissiveColor = BABYLON.Color3.White();
+                mesh.material = mat;*/
 
                 timeBlock = new BABYLON.GUI.TextBlock('TextBlock', '120'); 
 
@@ -335,11 +514,21 @@ var canvas = document.getElementById("renderCanvas");
                 rect3.cornerRadius = 30;
                 rect3.color = "orange";
                 rect3.thickness = 4;
-                rect3.background = "green";
+                rect3.background = "#46209F";
                 rect3.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP; 
                 rect3.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER; 
                 rect3.top = "20px"; // move button little over cannonfoot
                 //rect3.left = "140px"; // move button
+
+
+                pointer = new BABYLON.GUI.Image("pointer" + "_icon", "images/dot.png");
+                pointer.width = "2%";
+                pointer.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+                pointer.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                pointer.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                //pointer.top = "-50px";
+                //pointer.left = "-20px";
+                pointer.visibility = 0.2;
                 
                 
             }
@@ -348,14 +537,20 @@ var canvas = document.getElementById("renderCanvas");
 
                 cannonfoot.visibility = 1;
                 cannontube.visibility = 1;
-
+               
+                advancedTexture.addControl(scoreImage); 
                 advancedTexture.addControl(button1); 
                 advancedTexture.addControl(rect1);
                 rect1.addControl(label);
                 advancedTexture.addControl(rect2);
                 rect2.addControl(label1);
+                //rect2.addControl(label2);
+                //rect2.addControl(mesh);
+
                 advancedTexture.addControl(rect3);
                 rect3.addControl(timeBlock);
+
+                advancedTexture.addControl(pointer);
 
             }
 
@@ -422,30 +617,47 @@ var canvas = document.getElementById("renderCanvas");
 
             }
 
-            function createEnemy2(name,x,y,z){
-                //var enemyObj = BABYLON.MeshBuilder.CreateCylinder(name, { height: 0.5, diameter: 0.6, tessellation: 16 }, scene);
-                var enemyObj = BABYLON.Mesh.CreateCylinder(name, 3, 3, 0, 6, 1, scene, false);
-                enemyObj.material = new BABYLON.StandardMaterial("c6mat", scene);
-                enemyObj.material.diffuseColor = new BABYLON.Color3(1, 0, 1);
-                enemyObj.position.set(x,y,z);
-                enemyObj.physicsImpostor = new BABYLON.PhysicsImpostor(enemyObj, BABYLON.PhysicsImpostor.CylinderImpostor, { mass: 0, friction: 0.5, restition: 0.3 }, scene);
-                //enemyObj.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(1, 5, 1));
+            
+            async function particlegun(obj){
+                var particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
+                        particleSystem.particleTexture = new BABYLON.Texture("textures/gunFire.png", scene);
+                        particleSystem.emitter = obj;
+                        particleSystem.minEmitBox = new BABYLON.Vector3(-0.01, 0, -0.5);
+                        particleSystem.maxEmitBox = new BABYLON.Vector3(0.01, 0, -0.4);
+                        
+                        //particleSystem.color1 = new BABYLON.Color4(1, 0.5, 0, 1.0);
+                        //particleSystem.color2 = new BABYLON.Color4(1, 0.5, 0, 1.0);
+                        //particleSystem.colorDead = new BABYLON.Color4(0, 0, 0, 0.0);
+                        particleSystem.minSize = 0.1;
+                        particleSystem.maxSize = 0.3;
+                        particleSystem.minLifeTime = 0.01;
+                        particleSystem.maxLifeTime = 0.2;
+                        particleSystem.emitRate = 100;
+                        //particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+                        //particleSystem.gravity = new BABYLON.Vector3(0, -9.81, 0);
+                        particleSystem.direction1 = new BABYLON.Vector3(-1, 1, -1);
+                        particleSystem.direction2 = new BABYLON.Vector3(1, 1, 1);
+                        particleSystem.minAngularSpeed = 0;
+                        particleSystem.maxAngularSpeed = Math.PI;
+                        particleSystem.minEmitPower = 1;
+                        particleSystem.maxEmitPower = 3;
+                        particleSystem.updateSpeed = 0.005;
+                        
+                        
+                        particleSystem.start();
+                        await BABYLON.Tools.DelayAsync(200);
+                        particleSystem.stop();
 
-                //effectOnMesh(enemyObj);
-                console.info("enemy created");
-
-                //scaleByFactor(enemyObj, 2);
-
-                return enemyObj;
+                        
             }
-
-            function particleBlast(obj){
+            async function particleBlast(obj){
                 var particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
                         particleSystem.particleTexture = new BABYLON.Texture("textures/Flare.png", scene);
                         particleSystem.emitter = obj;
                         particleSystem.minEmitBox = new BABYLON.Vector3(-1, 0, -1);
                         particleSystem.maxEmitBox = new BABYLON.Vector3(1, 0, 1);
-                        particleSystem.color1 = new BABYLON.Color4(1, 0.5, 0, 1.0);
+                        
+                        /*particleSystem.color1 = new BABYLON.Color4(1, 0.5, 0, 1.0);
                         particleSystem.color2 = new BABYLON.Color4(1, 0.5, 0, 1.0);
                         particleSystem.colorDead = new BABYLON.Color4(0, 0, 0, 0.0);
                         particleSystem.minSize = 0.3;
@@ -462,16 +674,229 @@ var canvas = document.getElementById("renderCanvas");
                         particleSystem.minEmitPower = 1;
                         particleSystem.maxEmitPower = 3;
                         particleSystem.updateSpeed = 0.005;
-                        particleSystem.start();
+                        */
                         
+                        particleSystem.start();
+                        await BABYLON.Tools.DelayAsync(1000);
+                        particleSystem.stop();           
             }
+
+            var postProcess = new BABYLON.ImageProcessingPostProcess("processing", 1.0, camera);
+            postProcess.vignetteWeight = 10;
+            postProcess.vignetteStretch = 2;
+            postProcess.vignetteColor = new BABYLON.Color4(1, 0, 0, 0);
+
+            function flashRed() {
+                console.info("flash");
+                postProcess.vignetteEnabled = true;
+
+                setTimeout(function() {          
+                    postProcess.vignetteEnabled = false;
+                }, 1000); // Flash duration in milliseconds
+            }
+
+
             function createEnemy(name,x,y,z){
+                const myMaterial = new BABYLON.StandardMaterial("myMaterial", scene);
+
+                myMaterial.diffuseColor = new BABYLON.Color3(1, 0, 1);
+                myMaterial.specularColor = new BABYLON.Color3(0.5, 0.6, 0.87);
+                myMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+                myMaterial.ambientColor = new BABYLON.Color3(0.23, 0.98, 0.53);
+
+                
+                //var enemyObj = BABYLON.MeshBuilder.CreateCylinder(name, { height: 0.5, diameter: 0.6, tessellation: 16 }, scene);
+                var enemyObj = BABYLON.Mesh.CreateCylinder(name, 3, 3, 0, 6, 1, scene, false);
+                //enemyObj.material = new BABYLON.StandardMaterial("c6mat", scene);
+                //enemyObj.material = new BABYLON.StandardMaterial("whiteMaterial", scene);
+                //enemyObj.material.diffuseColor = new BABYLON.Color3(1, 0, 1);
+                enemyObj.material = myMaterial;
+                
+                enemyObj.position.set(x,y,z);
+                //enemyObj.physicsImpostor = new BABYLON.PhysicsImpostor(enemyObj, BABYLON.PhysicsImpostor.CylinderImpostor, { mass: 0, friction: 0.5, restition: 0.3 }, scene);
+                //enemyObj.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(1, 5, 1));
+         
+
+                //effectOnMesh(enemyObj);
+                console.info("enemy created");
+
+                scaleByFactor(enemyObj, 2);
+
+                var shield = BABYLON.MeshBuilder.CreateCylinder(name, {height:3, diameterTop: 3, diameterBottom: 3, tessellation: 32}, scene);
+                shield.parent = enemyObj;
+                shield.position.y = 2;
+                shield.physicsImpostor = new BABYLON.PhysicsImpostor(shield, BABYLON.PhysicsImpostor.CylinderImpostor, { mass: 0, friction: 0.5, restition: 0.3 }, scene);
+                shield.visibility=0;
+
+                var cylinder = BABYLON.MeshBuilder.CreateCylinder(name, {height: 0.5, diameterTop: 3, diameterBottom: 4, tessellation: 32}, scene);
+                cylinder.parent = enemyObj;
+                cylinder.position.y = 1.5;
+                //cylinder.physicsImpostor = new BABYLON.PhysicsImpostor(cylinder, BABYLON.PhysicsImpostor.CylinderImpostor, { mass: 0, friction: 0.5, restition: 0.3 }, scene);
+                
+
+                var mesh = null;
+                BABYLON.SceneLoader.ImportMesh("", "./models/model/", "obj.glb", scene, function (meshes, particleSystems, skeletons) {
+                
+                    let xQuat = new BABYLON.Quaternion();
+                    BABYLON.Quaternion.FromEulerAnglesToRef(Math.PI / 2, 0, 0, xQuat);
+                    for (var i=0; i<meshes.length; i++) {
+                        mesh = meshes[i];
+                        //console.info(mesh.name);
+                        if (mesh.name !== '__root__') {
+                            
+                            mesh.name = name
+                            mesh.material = myMaterial;
+                            mesh.rotation
+                            // Move the loaded models to webarStage
+                            mesh.physicsImpostor = new BABYLON.PhysicsImpostor(mesh, BABYLON.PhysicsImpostor.CylinderImpostor, { mass: 0, friction: 0.5, restition: 0.3 }, scene);
+                
+                            mesh.parent = enemyObj;
+                            mesh.position.y = 2;
+                            
+                            enemyObj.rotation.y = -60;
+
+                            //mesh.rotationQuaternion.multiplyInPlace(xQuat);
+                            //mesh.rotation.set(180,0,0);
+                            //mesh.position.set(x,y,z);//set(0,0,20);
+                           // scaleByFactor(mesh, 0.1);
+
+                          
+             
+                        }
+                    }
+                });
+                enemyObj.physicsImpostor = new BABYLON.PhysicsImpostor(enemyObj, BABYLON.PhysicsImpostor.CylinderImpostor, { mass: 0, friction: 0.5, restition: 0.3 }, scene);
+                
+                /*scene.registerAfterRender(function() {
+                    shield.rotation.y += 5; // Spin around the y-axis
+                });*/
+       
+        
+    enemyObj.lastSlideTime = 0;
+                var moveSpeed = Math.random() * 0.5 + 0.55;//0.05 // randomly set movement speed for enemy
+                var approachInterval = Math.random() * 1000 + 1000;//1000 // randomly set time interval for enemy to approach player
+                //console.info(name+"  :movespeed-"+moveSpeed+"  approachInterval "+ approachInterval);
+
+
+                enemyObj.move = function() {
+
+                     // Define the sliding interval in milliseconds
+    let slideInterval = 3000;
+
+    // Check if it's time to slide
+    if (this.lastSlideTime === undefined || Date.now() - this.lastSlideTime > slideInterval) {
+        // Generate a random direction to slide in
+        let direction = new BABYLON.Vector3(Math.random() * 2 - 1, 0, Math.random() * 2 - 1);
+        direction.normalize();
+
+        // Multiply the direction by a random distance to slide
+        let distance = Math.random() * 10;
+        let offset = direction.scale(distance);
+
+        // Move the enemy in the slide direction
+        this.position.addInPlace(offset);
+
+        // Update the last slide time
+        this.lastSlideTime = Date.now();
+
+        // generate a random scaling factor
+        var scalingFactor = Math.random() * 0.5 + 0.5;
+        this.scaling = new BABYLON.Vector3(scalingFactor, scalingFactor, scalingFactor);
+
+    }
+                    var min = -0.1;
+                    var max = 0.1;
+                    // move the enemy in random direction
+                    var x = Math.random() * 0.2 - 0.1;
+                    var z = Math.random() * 0.25 - 0.1; //0.23
+                    
+                    
+                    if(this.position.z < -1)
+                        this.position.addInPlace(new BABYLON.Vector3(x, 0, z));
+                    else if(this.position.z > 1)
+                        this.position.addInPlace(new BABYLON.Vector3(x, 0, z*-1));
+
+                    //this.position.addInPlace(new BABYLON.Vector3(x, 0, z));
+                    //console.info(this+"-"+this.position);
+                    // calculate distance to player
+                    var distance = BABYLON.Vector3.Distance(this.position, cannonfoot.position);
+                    
+                    //console.info("Moving enemy-",this.name,"\ndistance",distance,"\nx,z-",x ,z,z*-1 );
+                    
+                    // if distance to player is less than 10 units, move the enemy towards the player
+                    /*if (distance < 10) {
+                        var direction = cannonfoot.position.subtract(this.position);
+                        direction.normalize();
+                        this.position.addInPlace(direction.scale(moveSpeed));
+                        console.info("  attack....")
+                        enemyObj.dispose();
+                    }*/
+
+                    // if distance to player is less than 10 units, explode the enemy
+                    if (distance < 10) {
+                        console.info("  attack....");
+                        
+                        //this.dispose();
+                        //.dispose();
+                        if (this.position.y <= 0) {
+                            this.position.addInPlace(new BABYLON.Vector3(0, -10, 0));
+                        } else {
+                            this.position.addInPlace(new BABYLON.Vector3(0, 10, 0));
+                        }
+                        life -= 1;
+                        flashRed();
+                        if(life <= 0) life = 0;
+
+                        var index = enemy.indexOf(this);
+                        console.info("enemy "+index+"  attack....")
+                        particleBlast(enemy[index]);
+                        if(enemy[index].physicsImpostor){
+                            enemy[index].physicsImpostor.dispose()
+                        }
+                        enemy[index].dispose();
+                        
+                        if (index !== -1) {
+                            enemy[index] = null;
+                            enemy.splice(index, 1);
+                            for(var c=0; c<enemy.length; c++) 
+                                console.log(enemy[c].id); // output the enemy array
+                        }
+                        
+                        console.info("enemy length: "+ enemy.length);
+                    }
+                    // if distance to player is less than 10 units, move the enemy towards the player
+                    else if (distance < 15) {
+                        console.info("enemy "+index+"  it's nearer");
+                        var direction = cannonfoot.position.subtract(this.position);
+                        direction.normalize();
+                        this.position.addInPlace(direction.scale(moveSpeed));
+                    }
+                    else if (distance < 30) {
+                        console.info("enemy "+index+"  on the range...");
+                        var dx = cannonfoot.position.x - this.position.x;
+                        var dy = cannonfoot.position.y - this.position.y;
+            
+                        if (Math.abs(dx) > 20 || Math.abs(dy) > 10) {
+                            // move enemy towards player if the enemy's position goes beyond the player whose x and y position is greater than 10 units away
+                            var direction = cannonfoot.position.subtract(this.position);
+                            direction.normalize();
+                            this.position.addInPlace(direction.scale(moveSpeed));
+                        }
+                    }
+                }
+
+                return enemyObj;
+            }
+
+            function createEnemy2 (name,x,y,z){
                 var enemyObj = BABYLON.Mesh.CreateCylinder(name, 3, 3, 0, 6, 1, scene, false);
                 enemyObj.material = new BABYLON.StandardMaterial("enemyMat", scene);
+                //enemyObj.material = pbr;//new BABYLON.StandardMaterial("enemyMat", scene);
                 enemyObj.material.diffuseColor = new BABYLON.Color3(Math.random(), Math.random(), Math.random());
                 enemyObj.position.set(x,y,z);
                 enemyObj.physicsImpostor = new BABYLON.PhysicsImpostor(enemyObj, BABYLON.PhysicsImpostor.CylinderImpostor, { mass: 0, friction: 0.5, restition: 0.3 }, scene);
-            
+                scaleByFactor(enemyObj,1.5);
+                
                 var moveSpeed = Math.random() * 0.5 + 0.55;//0.05 // randomly set movement speed for enemy
                 var approachInterval = Math.random() * 1000 + 1000;//1000 // randomly set time interval for enemy to approach player
                 //console.info(name+"  :movespeed-"+moveSpeed+"  approachInterval "+ approachInterval);
@@ -483,12 +908,20 @@ var canvas = document.getElementById("renderCanvas");
                     // move the enemy in random direction
                     var x = Math.random() * 0.2 - 0.1;
                     var z = Math.random() * 0.25 - 0.1; //0.23
-                 
-                    this.position.addInPlace(new BABYLON.Vector3(x, 0, z));
+                    
+                    
+                    if(this.position.z < -1)
+                        this.position.addInPlace(new BABYLON.Vector3(x, 0, z));
+                    else if(this.position.z > 1)
+                        this.position.addInPlace(new BABYLON.Vector3(x, 0, z*-1));
+
+                    //this.position.addInPlace(new BABYLON.Vector3(x, 0, z));
                     //console.info(this+"-"+this.position);
                     // calculate distance to player
                     var distance = BABYLON.Vector3.Distance(this.position, cannonfoot.position);
-            
+                    
+                    //console.info("Moving enemy-",this.name,"\ndistance",distance,"\nx,z-",x ,z,z*-1 );
+                    
                     // if distance to player is less than 10 units, move the enemy towards the player
                     /*if (distance < 10) {
                         var direction = cannonfoot.position.subtract(this.position);
@@ -563,10 +996,20 @@ var canvas = document.getElementById("renderCanvas");
 
             var enemy = [];
             function generateEnemies() {
+                //var box1 = BABYLON.Mesh.CreateBox("name", 5.0, scene);
+                //box1.position.z = -10;
+                //box1.setParent(webarStage);
+
+               
                 for(var i=0; i< enemyCount; i++){
                     
                     //randomInteger(-5,10)
-                    enemy[i] = createEnemy("enemy"+i,randomInteger(-20,20),randomInteger(-15,20),randomInteger(-60,-80));
+                    if(i< enemyCount/1.5)
+                        enemy[i] = createEnemy("enemy"+i,randomInteger(-80,80),randomInteger(-10,40),randomInteger(-40,-200));
+                    else
+                        enemy[i] = createEnemy("enemy"+i,randomInteger(-80,80),randomInteger(-10,40),randomInteger(40,200));
+
+                    //enemy[i] = createEnemy("enemy"+i,randomInteger(-20,20),randomInteger(-15,20),randomInteger(-60,-80));
                     //en.checkCollision = true;
                     enemy[i].setParent(webarStage);
             
@@ -575,21 +1018,97 @@ var canvas = document.getElementById("renderCanvas");
                     //scaleByFactor(enemy[i], 2);
                     
                 }
+                //animateSlide(enemy[0]);
+                
+            }
+            function animateSlide(obj){
+                
+                var frameRate = 10;
+
+                //Position Animation
+                var xSlide = new BABYLON.Animation("xSlide", "position.x", frameRate, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+                
+                var keyFramesP = []; 
+            
+                keyFramesP.push({
+                    frame: 0,
+                    value: obj.position.x
+                });
+            
+                keyFramesP.push({
+                    frame: frameRate,
+                    value: obj.position.x + 20
+                });
+            
+                keyFramesP.push({
+                    frame: 10 * frameRate,
+                    value: obj.position.x - 20
+                });
+            
+            
+                xSlide.setKeys(keyFramesP);
+            
+                //Rotation Animation
+                var yRot = new BABYLON.Animation("yRot", "rotation.y", frameRate, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+            
+                var keyFramesR = []; 
+            
+                keyFramesR.push({
+                    frame: 0,
+                    value: 0
+                });
+            
+                keyFramesR.push({
+                    frame: frameRate,
+                    value: Math.PI
+                });
+            
+                keyFramesR.push({
+                    frame: 2 * frameRate,
+                    value: 2 * Math.PI
+                });
+            
+            
+                yRot.setKeys(keyFramesR);
+
+                
+            
+                scene.beginDirectAnimation(obj, [xSlide, yRot], 0, 2 * frameRate, true);
+                //scene.beginDirectAnimation(box1, xSlide, 0, 2 * frameRate, true);
             }
 
             function firebullet (power) {
+                particlegun(itarg);
                 var bullet = BABYLON.MeshBuilder.CreateSphere("Bullet", { segments: 3, diameter: 0.5}, scene);
                 bullet.position = cannontube.getAbsolutePosition();
-                //bullet.scale.y += 1.0;
+                bullet.scaling.y -= 0.2;
+                bullet.scaling.x -= 0.2;
                 bullet.isPickable = false; 
                 bullet.physicsImpostor = new BABYLON.PhysicsImpostor(bullet, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1, friction: 0.5, restition: 0.9 }, scene);
                 
-                bullet.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(1, 1, -10));
+                //bullet.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(0, 0, -20));
                 //scaleByFactor(bullet, 0.4);
 
+                //random color
                 const sphereMaterial = new BABYLON.StandardMaterial("material", scene);
                 sphereMaterial.diffuseColor = BABYLON.Color3.Random();
                 bullet.material = sphereMaterial;
+
+                //pbr shine
+                var pbr = new BABYLON.PBRMaterial("pbr", scene);
+                pbr.metallic = 1.0;
+                pbr.roughness = 0;
+                pbr.subSurface.isRefractionEnabled = true;
+                pbr.subSurface.indexOfRefraction = 1.5;
+                pbr.subSurface.tintColor = new BABYLON.Color3(0.5, 0, 0);
+                var a = 0;
+                scene.beforeRender = () => {
+                    a += 0.05;
+                    pbr.subSurface.tintColor.g = Math.cos(a) * 0.5 + 0.5;
+                    pbr.subSurface.tintColor.b = pbr.subSurface.tintColor.g;
+                }
+
+                //bullet.material = pbr;
 
                 //console.info(bullet);
 
@@ -609,6 +1128,7 @@ var canvas = document.getElementById("renderCanvas");
                     console.info("bullet collide-",e,t)
                     console.info(t.object.name);
                     t.object.dispose();
+                    particleBlast(t.object);
                     point +=1;
                     //castRay(bullet);
                 }
@@ -671,12 +1191,13 @@ var canvas = document.getElementById("renderCanvas");
                 rect2.dispose();
                 rect3.dispose();
                 button1.dispose();
+                scoreImage.dispose();
             }
             
             // Create a game over screen
             function gameOverScreen () {
-                var iconImage = new BABYLON.GUI.Image("aero" + "_icon", "images/AERO.png");
-                iconImage.width = "80%";
+                var iconImage = new BABYLON.GUI.Image("aero" + "_icon", "images/5.png");
+                iconImage.width = 1;
                 iconImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
                 iconImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                 iconImage.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
@@ -685,16 +1206,32 @@ var canvas = document.getElementById("renderCanvas");
                 var gameOverScreen = new BABYLON.GUI.Rectangle();
                 gameOverScreen.width = 1;
                 gameOverScreen.height = 0.4;
-                gameOverScreen.color = "red";
+                gameOverScreen.color = "#C8099B";
                 gameOverScreen.alpha = 0.9;
                 gameOverScreen.cornerRadius = 20;
                 gameOverScreen.thickness = 10;
-                gameOverScreen.background = "green";
+                gameOverScreen.background = "#46209F";
                 gameOverScreen.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                 gameOverScreen.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-            
+                gameOverScreen.top = "50px";
+                
+                var gameOverText = new BABYLON.GUI.TextBlock();
+                gameOverText.text = "Game Over";
+                gameOverText.color = "White";
+                gameOverText.fontSize = 50;
+                gameOverText.top = "-110px";
+                //gameOverText.left = "-140px";
+                gameOverText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                gameOverText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+                var xp = 0;
+                if(point >= enemyCount)  xp = 200 + point*10;
+                else if(point >= Math.round(enemyCount/2)) xp = 100 + point*10;
+                else if(point >= Math.round(enemyCount/4)) xp = 50 + point*10;
+                else  xp = point*10;
+
                 var xpText = new BABYLON.GUI.TextBlock();
-                xpText.text = "XP\n"+(point*10);
+                xpText.text = "XP\n"+xp;
                 xpText.color = "orange";
                 xpText.fontSize = 25;
                 xpText.top = "-40px";
@@ -711,50 +1248,72 @@ var canvas = document.getElementById("renderCanvas");
                 shootText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
                 shootText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
 
-                if (shootCounter <= 0) shootCounter = 1;
-                var accuracy = Math.round((point/shootCounter)*100);
+                var smashText = new BABYLON.GUI.TextBlock();
+                smashText.text = "Smash\n"+point;
+                smashText.color = "orange";
+                smashText.fontSize = 25;
+                smashText.top = "-40px";
+                smashText.left = "130px";
+                smashText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                smashText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
 
-                var accuracyText = new BABYLON.GUI.TextBlock();
-                accuracyText.text = "Accuracy\n"+accuracy + "%";
-                accuracyText.color = "orange";
-                accuracyText.fontSize = 25;
-                accuracyText.top = "-40px";
-                accuracyText.left = "130px";
-                accuracyText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-                accuracyText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-
-                var gameOverText = new BABYLON.GUI.TextBlock();
-                gameOverText.text = "Let's Play Again!";
-                gameOverText.color = "white";
-                gameOverText.fontSize = 25;
-                gameOverText.top = "40px";
-                gameOverText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-                gameOverText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                var playAgainText = new BABYLON.GUI.TextBlock();
+                playAgainText.text = "Let's Play Again!";
+                playAgainText.color = "white";
+                playAgainText.fontSize = 25;
+                playAgainText.top = "40px";
+                playAgainText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+                playAgainText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
             
-                var restartButton = BABYLON.GUI.Button.CreateSimpleButton("restartButton", "Continue");
-                restartButton.width = 0.4;
-                restartButton.height = "60px";
-                restartButton.color = "black";
-                restartButton.cornerRadius = 20;
-                restartButton.background = "red";
-                restartButton.top = "0px";
-                restartButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-                restartButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                restartButton.onPointerUpObservable.add(function() {
-                    alert("refresh page to play again");
+                var yesButton = BABYLON.GUI.Button.CreateSimpleButton("yesButton", "Yes");
+                yesButton.width = 0.3;
+                yesButton.height = "60px";
+                yesButton.color = "White";
+                yesButton.cornerRadius = 20;
+                yesButton.background = "#C8099B";
+                yesButton.top = "0px";
+                yesButton.left = "-60px";
+                yesButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+                yesButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                yesButton.onPointerUpObservable.add(function() {
+                    //alert("coming soon...\nRefresh page to play again");
                     // Restart the game
                     //gamescreenEnable = false;
                     //gameOverScreen.dispose();
                     //iconImage.dispose();
                     //menuScreen();
+                    location.reload();
+                    
                 });         
+
+                var noButton = BABYLON.GUI.Button.CreateSimpleButton("noButton", "No");
+                noButton.width = 0.3;
+                noButton.height = "60px";
+                noButton.color = "White";
+                noButton.cornerRadius = 20;
+                noButton.background = "#C8099B";
+                noButton.top = "0px";
+                noButton.left = "60px";
+                noButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+                noButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                noButton.onPointerUpObservable.add(function() {
+                    alert("Thank you for playing\nSee you next time.");
+                    // Restart the game
+                    //gamescreenEnable = false;
+                    //gameOverScreen.dispose();
+                    //iconImage.dispose();
+                    //menuScreen();
+                    //engine.stopRenderLoop();
+                    location.reload();
+                }); 
                 
-                
+                gameOverScreen.addControl(gameOverText);
                 gameOverScreen.addControl(xpText);
                 gameOverScreen.addControl(shootText);
-                gameOverScreen.addControl(accuracyText);
-                gameOverScreen.addControl(gameOverText);
-                gameOverScreen.addControl(restartButton);
+                gameOverScreen.addControl(smashText);
+                gameOverScreen.addControl(playAgainText);
+                gameOverScreen.addControl(yesButton);
+                gameOverScreen.addControl(noButton);
 
                 var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
                 //var gameOverScreen = gameOverScreen();
@@ -783,14 +1342,13 @@ var canvas = document.getElementById("renderCanvas");
                 }
                 if(stageReadyVariable == 1 && gamescreenEnable == false)  {
                     instruction.text = 'press play to continue';
-                    startButton.background = "green";
+                    startButton.background = "#46209F";
                 }
                 
                 if(stageReadyVariable == 1)  {
                     //console.info("render before"); 
-
-                    
-                    if(life <= 0 && gameOverCheck == true || Math.floor(count) <= 0 && gameOverCheck == true) {
+      
+                    if(life <= 0 && gameOverCheck == true || Math.floor(timecount) <= 0 && gameOverCheck == true) {
                         for(var i=0; i<enemy.length; i++) {
                             enemy[i].dispose();
                             gameOverCheck = false;
@@ -803,14 +1361,18 @@ var canvas = document.getElementById("renderCanvas");
                         destroyGameElement();
                         gameOverScreen();
                     }
+                    
+                    var lifeBar = "";
+                    for(var i = 0; i < life; i++) lifeBar += "X";
+
                     label.text = "Smash \n " +point;
-                    label1.text = "Life \n " +life;
+                    label1.text = "Life \n " + lifeBar;
 
                     /*for (var i = 0; i < enemy.length; i++) {
                         enemy[i].rotation.x = -Math.PI / 2; 
                     }*/
-                    moveEnemies();
 
+                    moveEnemies();
                         
                     /*try{
                         //const pos_mat  = WEBARSDK.GetCurrentPose();
@@ -835,7 +1397,7 @@ var canvas = document.getElementById("renderCanvas");
                 }
             });
               
-            const asynXPFlash = async function () {
+            async function asynXPFlash () {
                 var advancedTextureInRender = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
 
                 // Adding image
@@ -861,13 +1423,13 @@ var canvas = document.getElementById("renderCanvas");
             });
 
             scene.onBeforeRenderObservable.add((thisScene, state) => {
-                if(tracking == true && Math.round(count) > 0 ) {
+                if(tracking == true && Math.round(timecount) > 0 ) {
                     //console.info("Count - ");
                     if (!thisScene.deltaTime) return;
                     //console.info(count);
-                    count -= (thisScene.deltaTime / 1000);
+                    timecount -= (thisScene.deltaTime / 1000);
                     //if(count <= 0) return;
-                    timeBlock.text = String(Math.round(count));
+                    timeBlock.text = String(Math.round(timecount));
                 }
             });
             
