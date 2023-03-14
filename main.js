@@ -32,9 +32,6 @@ var canvas = document.getElementById("renderCanvas");
 
         function createScene () {
             var scene = new BABYLON.Scene(engine);
-            //scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("./models/environment.dds", scene);
-
-
             //bippar needs UniversalCamera
             var camera = new BABYLON.UniversalCamera("camera1", new BABYLON.Vector3(0, 0, 0), scene);
             //camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
@@ -71,20 +68,22 @@ var canvas = document.getElementById("renderCanvas");
                 //var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
 
                 // Adding image
-                var iconImage = new BABYLON.GUI.Image("aero" + "_icon", "images/5.png");
+                var iconImage = new BABYLON.GUI.Image("aero" + "_icon", "images/6.png");
                 iconImage.width = 1;
-                iconImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+                iconImage.height = 0.6;
+                //iconImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
                 iconImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                iconImage.top = "-260px";
+                iconImage.top = "-300px";
                 advancedTexture.addControl(iconImage); 
 
-                var menuImage = new BABYLON.GUI.Image("aero" + "_icon", "images/7.png");
+                var menuImage = new BABYLON.GUI.Image("aero" + "_icon", "images/17.png");
                 menuImage.width = 1.2;
-                menuImage.height = 1.2;
+                menuImage.height = 1;
                 //menuImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
                 menuImage.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
                 menuImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                menuImage.top = "200px";
+                menuImage.top = "100px";
+                //menuImage.top="0px";
                 advancedTexture.addControl(menuImage); 
 
 
@@ -359,7 +358,7 @@ var canvas = document.getElementById("renderCanvas");
                 //scaleByFactor(itarg, 0.5);
 
                 
-                BABYLON.SceneLoader.ImportMesh("", "./models/model/", "gun.glb", scene, function (meshes, particleSystems, skeletons) {
+                BABYLON.SceneLoader.ImportMesh("", "./models/", "gun.glb", scene, function (meshes, particleSystems, skeletons) {
                 
                     let xQuat = new BABYLON.Quaternion();
                     BABYLON.Quaternion.FromEulerAnglesToRef(Math.PI / 2, 0, 0, xQuat);
@@ -657,6 +656,7 @@ var canvas = document.getElementById("renderCanvas");
                         particleSystem.minEmitBox = new BABYLON.Vector3(-1, 0, -1);
                         particleSystem.maxEmitBox = new BABYLON.Vector3(1, 0, 1);
                         
+
                         /*particleSystem.color1 = new BABYLON.Color4(1, 0.5, 0, 1.0);
                         particleSystem.color2 = new BABYLON.Color4(1, 0.5, 0, 1.0);
                         particleSystem.colorDead = new BABYLON.Color4(0, 0, 0, 0.0);
@@ -735,7 +735,7 @@ var canvas = document.getElementById("renderCanvas");
                 
 
                 var mesh = null;
-                BABYLON.SceneLoader.ImportMesh("", "./models/model/", "obj.glb", scene, function (meshes, particleSystems, skeletons) {
+                BABYLON.SceneLoader.ImportMesh("", "./models/", "obj.glb", scene, function (meshes, particleSystems, skeletons) {
                 
                     let xQuat = new BABYLON.Quaternion();
                     BABYLON.Quaternion.FromEulerAnglesToRef(Math.PI / 2, 0, 0, xQuat);
@@ -1079,7 +1079,7 @@ var canvas = document.getElementById("renderCanvas");
 
             function firebullet (power) {
                 particlegun(itarg);
-                var bullet = BABYLON.MeshBuilder.CreateSphere("Bullet", { segments: 3, diameter: 0.5}, scene);
+                var bullet = BABYLON.MeshBuilder.CreateSphere("Bullet", { segments: 3, diameter: 0.8}, scene);
                 bullet.position = cannontube.getAbsolutePosition();
                 bullet.scaling.y -= 0.2;
                 bullet.scaling.x -= 0.2;
@@ -1094,26 +1094,11 @@ var canvas = document.getElementById("renderCanvas");
                 sphereMaterial.diffuseColor = BABYLON.Color3.Random();
                 bullet.material = sphereMaterial;
 
-                //pbr shine
-                var pbr = new BABYLON.PBRMaterial("pbr", scene);
-                pbr.metallic = 1.0;
-                pbr.roughness = 0;
-                pbr.subSurface.isRefractionEnabled = true;
-                pbr.subSurface.indexOfRefraction = 1.5;
-                pbr.subSurface.tintColor = new BABYLON.Color3(0.5, 0, 0);
-                var a = 0;
-                scene.beforeRender = () => {
-                    a += 0.05;
-                    pbr.subSurface.tintColor.g = Math.cos(a) * 0.5 + 0.5;
-                    pbr.subSurface.tintColor.b = pbr.subSurface.tintColor.g;
-                }
-
-                //bullet.material = pbr;
-
                 //console.info(bullet);
 
                 var dir = itarg.getAbsolutePosition().subtract(cannontube.getAbsolutePosition());
-                bullet.physicsImpostor.applyImpulse(dir.scale(power), cannontube.getAbsolutePosition());
+                //bullet.physicsImpostor.applyImpulse(dir.scale(power), cannontube.getAbsolutePosition());
+                bullet.physicsImpostor.applyImpulse(dir.scale(power), new CANNON.Vec3().copy(cannontube.getAbsolutePosition()));
                 bullet.life = 0
                 
                 bullet.step = ()=>{
@@ -1127,8 +1112,9 @@ var canvas = document.getElementById("renderCanvas");
                 bullet.physicsImpostor.onCollideEvent = (e, t)=>{
                     console.info("bullet collide-",e,t)
                     console.info(t.object.name);
-                    t.object.dispose();
+                    
                     particleBlast(t.object);
+                    t.object.dispose();
                     point +=1;
                     //castRay(bullet);
                 }
@@ -1196,7 +1182,7 @@ var canvas = document.getElementById("renderCanvas");
             
             // Create a game over screen
             function gameOverScreen () {
-                var iconImage = new BABYLON.GUI.Image("aero" + "_icon", "images/5.png");
+                var iconImage = new BABYLON.GUI.Image("aero" + "_icon", "images/6.png");
                 iconImage.width = 1;
                 iconImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
                 iconImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
