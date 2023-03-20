@@ -73,16 +73,16 @@ var canvas = document.getElementById("renderCanvas");
                 iconImage.height = 0.6;
                 //iconImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
                 iconImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                iconImage.top = "-300px";
+                iconImage.top = "-260px";
                 advancedTexture.addControl(iconImage); 
 
-                var menuImage = new BABYLON.GUI.Image("aero" + "_icon", "images/17.png");
+                var menuImage = new BABYLON.GUI.Image("aero" + "_icon", "images/19.png");
                 menuImage.width = 1.2;
                 menuImage.height = 1;
                 //menuImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
                 menuImage.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
                 menuImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                menuImage.top = "100px";
+                menuImage.top = "50px";
                 //menuImage.top="0px";
                 advancedTexture.addControl(menuImage); 
 
@@ -125,8 +125,9 @@ var canvas = document.getElementById("renderCanvas");
                 instructionsButton.width = "150px";//200
                 instructionsButton.height = "60px";//100
                 instructionsButton.color = "white";
+                instructionsButton.alpha = 1;
                 instructionsButton.cornerRadius = 20;
-                instructionsButton.background = "#46209F";//"blue";
+                instructionsButton.background = "#04124D";//"#46209F";//"blue";
                 instructionsButton.top = "200px";
                 instructionsButton.onPointerUpObservable.add(function() {
                     instructionPage();
@@ -139,19 +140,21 @@ var canvas = document.getElementById("renderCanvas");
                 soundButton.height = "60px";
                 soundButton.color = "white";
                 soundButton.cornerRadius = 20;
-                soundButton.background = "#46209F";
+                soundButton.background = "#04124D";//"#46209F";
                 soundButton.top = "300px";
                 soundButton.onPointerUpObservable.add(function() {
                     if (musicStatus == true){
                         music.setVolume(0,1);
                         soundButton.textBlock.text = "Sound : Off";
-                        soundButton.background = "gray";
+                        soundButton.background = "#04124D";//"gray";
+                        soundButton.alpha = 1;
                         musicStatus = false;
                     }
                     else{
                         music.setVolume(1,1);
                         soundButton.textBlock.text = "Sound : On";
-                        soundButton.background = "#46209F";
+                        soundButton.background = "#04124D";//"#46209F";
+                        soundButton.alpha = 1;
                         musicStatus = true;
                     }
                     
@@ -197,15 +200,15 @@ var canvas = document.getElementById("renderCanvas");
 
                 var instructionPageScreen = new BABYLON.GUI.Rectangle();
                 instructionPageScreen.width = 1;
-                instructionPageScreen.height = 0.4;
+                instructionPageScreen.height = 0.5;
                 instructionPageScreen.color = "#C8099B";
-                instructionPageScreen.alpha = 0.9;
+                instructionPageScreen.alpha = 1;
                 instructionPageScreen.cornerRadius = 20;
                 instructionPageScreen.thickness = 10;
-                instructionPageScreen.background = "#46209F";
+                instructionPageScreen.background = "#04124D";//"#46209F";
                 instructionPageScreen.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                 instructionPageScreen.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-                instructionPageScreen.top = "50px";
+                instructionPageScreen.top = "150px";
 
                 var instructionPageHeading = new BABYLON.GUI.TextBlock();
                 instructionPageHeading.text = "Instructions";
@@ -236,6 +239,7 @@ var canvas = document.getElementById("renderCanvas");
                 okButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                 okButton.onPointerUpObservable.add(function() {
                     instructionPageScreen.dispose();
+                    instructionsButton.alpha = 1;
                 });            
                 
                 advancedTexture.addControl(instructionPageScreen);
@@ -435,13 +439,13 @@ var canvas = document.getElementById("renderCanvas");
                 //scoreImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
                 scoreImage.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
                 scoreImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                scoreImage.top = "100px";
+                scoreImage.top = "150px";
                 
                 
 
                 button1 = BABYLON.GUI.Button.CreateSimpleButton("but1", "Fire");
-                button1.width = "160px"
-                button1.height = "100px";
+                button1.width = "120px"
+                button1.height = "80px";
                 button1.color = "white";
                 button1.cornerRadius = 20;
                 button1.background = "#C8099B";
@@ -463,7 +467,7 @@ var canvas = document.getElementById("renderCanvas");
                 rect1.cornerRadius = 20;
                 rect1.color = "Orange";
                 rect1.thickness = 4;
-                rect1.background = "#46209F";
+                rect1.background = "#04124D";
                 rect1.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
                 rect1.top = "-40px"; // move button little over cannonfoot
                 rect1.left = "-140px"; // move button
@@ -480,7 +484,7 @@ var canvas = document.getElementById("renderCanvas");
                 rect2.cornerRadius = 20;
                 rect2.color = "Orange";
                 rect2.thickness = 4;
-                rect2.background = "#46209F";
+                rect2.background = "#04124D";
                 rect2.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
                 rect2.top = "-40px"; // move button little over cannonfoot
                 rect2.left = "140px"; // move button
@@ -513,7 +517,7 @@ var canvas = document.getElementById("renderCanvas");
                 rect3.cornerRadius = 30;
                 rect3.color = "orange";
                 rect3.thickness = 4;
-                rect3.background = "#46209F";
+                rect3.background = "#04124D";
                 rect3.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP; 
                 rect3.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER; 
                 rect3.top = "20px"; // move button little over cannonfoot
@@ -534,8 +538,9 @@ var canvas = document.getElementById("renderCanvas");
             
             function gameScreenAddController() {
 
-                cannonfoot.visibility = 1;
-                cannontube.visibility = 1;
+                cannonfoot.visibility = 0;
+                cannontube.visibility = 0;
+                itarg.visibility=0;
                
                 advancedTexture.addControl(scoreImage); 
                 advancedTexture.addControl(button1); 
@@ -746,7 +751,7 @@ var canvas = document.getElementById("renderCanvas");
                             
                             mesh.name = name
                             mesh.material = myMaterial;
-                            mesh.rotation
+                            //mesh.rotation
                             // Move the loaded models to webarStage
                             mesh.physicsImpostor = new BABYLON.PhysicsImpostor(mesh, BABYLON.PhysicsImpostor.CylinderImpostor, { mass: 0, friction: 0.5, restition: 0.3 }, scene);
                 
@@ -1095,10 +1100,14 @@ var canvas = document.getElementById("renderCanvas");
                 bullet.material = sphereMaterial;
 
                 //console.info(bullet);
-
-                var dir = itarg.getAbsolutePosition().subtract(cannontube.getAbsolutePosition());
-                //bullet.physicsImpostor.applyImpulse(dir.scale(power), cannontube.getAbsolutePosition());
-                bullet.physicsImpostor.applyImpulse(dir.scale(power), new CANNON.Vec3().copy(cannontube.getAbsolutePosition()));
+                try{
+                    var dir = itarg.getAbsolutePosition().subtract(cannontube.getAbsolutePosition());
+                    //bullet.physicsImpostor.applyImpulse(dir.scale(power), cannontube.getAbsolutePosition());
+                    bullet.physicsImpostor.applyImpulse(dir.scale(power), new CANNON.Vec3().copy(cannontube.getAbsolutePosition()));
+                }
+                catch(err){
+                    console.info("applyImposter-",err);
+                }
                 bullet.life = 0
                 
                 bullet.step = ()=>{
@@ -1193,10 +1202,10 @@ var canvas = document.getElementById("renderCanvas");
                 gameOverScreen.width = 1;
                 gameOverScreen.height = 0.4;
                 gameOverScreen.color = "#C8099B";
-                gameOverScreen.alpha = 0.9;
+                gameOverScreen.alpha = 1;
                 gameOverScreen.cornerRadius = 20;
                 gameOverScreen.thickness = 10;
-                gameOverScreen.background = "#46209F";
+                gameOverScreen.background = "#04124D";
                 gameOverScreen.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                 gameOverScreen.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
                 gameOverScreen.top = "50px";
@@ -1328,7 +1337,7 @@ var canvas = document.getElementById("renderCanvas");
                 }
                 if(stageReadyVariable == 1 && gamescreenEnable == false)  {
                     instruction.text = 'press play to continue';
-                    startButton.background = "#46209F";
+                    startButton.background = "#04124D";//"#46209F";
                 }
                 
                 if(stageReadyVariable == 1)  {
@@ -1388,12 +1397,12 @@ var canvas = document.getElementById("renderCanvas");
 
                 // Adding image
                 var xpImage = new BABYLON.GUI.Image("xp" + "_icon", "images/xp.png");
-                xpImage.width = "50%";
+                xpImage.width = "40%";
                 xpImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
                 xpImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
                 xpImage.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
                 xpImage.top = "-300px";
-                xpImage.left = "60px";
+                xpImage.left = "35px";
                 advancedTextureInRender.addControl(xpImage); 
                 await BABYLON.Tools.DelayAsync(1000);
                 xpImage.dispose();
