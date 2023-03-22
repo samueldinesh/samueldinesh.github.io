@@ -57,6 +57,8 @@ var canvas = document.getElementById("renderCanvas");
 
             var light = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(5, 10, -2), scene);
             light.intensity = 0.7;
+            //light.diffuse = new BABYLON.Color3(1, 0, 0);
+
 
             var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
             
@@ -655,14 +657,15 @@ var canvas = document.getElementById("renderCanvas");
                         
             }
             async function particleBlast(obj){
+                console.info("particleBlast-", obj.name);
                 var particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
                         particleSystem.particleTexture = new BABYLON.Texture("textures/Flare.png", scene);
                         particleSystem.emitter = obj;
-                        particleSystem.minEmitBox = new BABYLON.Vector3(-1, 0, -1);
-                        particleSystem.maxEmitBox = new BABYLON.Vector3(1, 0, 1);
+                        particleSystem.minEmitBox = new BABYLON.Vector3(-2, 0, -2);
+                        particleSystem.maxEmitBox = new BABYLON.Vector3(2, 0, 2);
                         
-
-                        /*particleSystem.color1 = new BABYLON.Color4(1, 0.5, 0, 1.0);
+                        
+                        particleSystem.color1 = new BABYLON.Color4(1, 0.5, 0, 1.0);
                         particleSystem.color2 = new BABYLON.Color4(1, 0.5, 0, 1.0);
                         particleSystem.colorDead = new BABYLON.Color4(0, 0, 0, 0.0);
                         particleSystem.minSize = 0.3;
@@ -679,11 +682,16 @@ var canvas = document.getElementById("renderCanvas");
                         particleSystem.minEmitPower = 1;
                         particleSystem.maxEmitPower = 3;
                         particleSystem.updateSpeed = 0.005;
-                        */
+                        
+                        
                         
                         particleSystem.start();
+                        obj.visibility=0;
                         await BABYLON.Tools.DelayAsync(1000);
+                        obj.dispose();
+                        
                         particleSystem.stop();           
+                        
             }
 
             var postProcess = new BABYLON.ImageProcessingPostProcess("processing", 1.0, camera);
@@ -706,7 +714,7 @@ var canvas = document.getElementById("renderCanvas");
 
                 myMaterial.diffuseColor = new BABYLON.Color3(1, 0, 1);
                 myMaterial.specularColor = new BABYLON.Color3(0.5, 0.6, 0.87);
-                myMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+                myMaterial.emissiveColor = BABYLON.Color3.Random();//new BABYLON.Color3(1, 1, 1);
                 myMaterial.ambientColor = new BABYLON.Color3(0.23, 0.98, 0.53);
 
                 
@@ -1123,8 +1131,9 @@ var canvas = document.getElementById("renderCanvas");
                     console.info(t.object.name);
                     
                     particleBlast(t.object);
-                    t.object.dispose();
+                    //t.object.dispose();
                     point +=1;
+                    if(life <5)  life +=1;
                     //castRay(bullet);
                 }
 
