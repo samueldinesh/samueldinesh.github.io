@@ -11,7 +11,7 @@ var canvas = document.getElementById("renderCanvas");
         var point = 0;
         var oldPoint = 0;
 
-        var life = 5;
+        var life = 4;
 
         var shootCounter = 0;
         var enemyCount = 30;
@@ -114,6 +114,7 @@ var canvas = document.getElementById("renderCanvas");
                 startButton.cornerRadius = 20;
                 startButton.background = "gray";
                 startButton.top = "100px";
+                startButton.isPointerBlocker = true;
                 startButton.onPointerUpObservable.add(function() {
                     // start the game when the button is clicked
                     if( stageReadyVariable == 1){
@@ -131,6 +132,7 @@ var canvas = document.getElementById("renderCanvas");
                 instructionsButton.cornerRadius = 20;
                 instructionsButton.background = "#04124D";//"#46209F";//"blue";
                 instructionsButton.top = "200px";
+                //instruction
                 instructionsButton.onPointerUpObservable.add(function() {
                     instructionPage();
                     
@@ -427,6 +429,12 @@ var canvas = document.getElementById("renderCanvas");
             var label2 = null;
             var mesh = null;
 
+            var smashText = null;
+            var heartImage = null;
+            var heartImage1 = null;
+            var heartImage2 = null;
+            var heartImage3 = null;
+
             var scoreImage = null;
 
             var timeBlock = null;
@@ -451,7 +459,9 @@ var canvas = document.getElementById("renderCanvas");
                 button1.color = "white";
                 button1.cornerRadius = 20;
                 button1.background = "#C8099B";
-                button1.onPointerDownObservable.add(function() {
+                button1.isPointerBlocker = true;
+                //button1.onPointerDownObservable.add(function() {
+                button1.onPointerUpObservable.add(function() {
                     shootCounter += 1;
                     var power = 10;
                     firebullet(power);
@@ -467,17 +477,24 @@ var canvas = document.getElementById("renderCanvas");
                 rect1.width = 0.2;
                 rect1.height = "80px";
                 rect1.cornerRadius = 20;
-                rect1.color = "Orange";
+                rect1.color = "#04124D";//"Orange";
                 rect1.thickness = 4;
-                rect1.background = "#04124D";
+                //rect1.background = "#04124D";
                 rect1.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
-                rect1.top = "-40px"; // move button little over cannonfoot
-                rect1.left = "-140px"; // move button
+                rect1.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+                rect1.top = "-5px"; -40// move button little over cannonfoot
+                rect1.left = "5px"; -140// move button
                 //advancedTexture.addControl(rect1);
-    
-
+                
                 label = new BABYLON.GUI.TextBlock();
-                label.text = "Smash \n " +point;
+                label.text = point;
+                label.color = "Orange";
+                label.fontSize = 25;
+
+                labelSmash = new BABYLON.GUI.TextBlock();
+                labelSmash.text = "\nSmash";
+                labelSmash.color = "Orange";
+                labelSmash.fontSize = 22;
                 //rect1.addControl(label);
 
                 rect2 = new BABYLON.GUI.Rectangle();
@@ -534,6 +551,57 @@ var canvas = document.getElementById("renderCanvas");
                 //pointer.top = "-50px";
                 //pointer.left = "-20px";
                 pointer.visibility = 0.2;
+
+               
+
+                heartImage = new BABYLON.GUI.Image("heart", "images/heart.png");
+                heartImage.width = 0.1;
+                heartImage.height = 0.05;
+                //heartImage.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+                heartImage.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+                heartImage.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+                heartImage.left = "-5px";
+
+                heartImage1 = heartImage.clone();
+                heartImage1.top = "-35px";
+
+                heartImage2 = heartImage.clone();
+                heartImage2.top = "-70px";
+
+                heartImage3 = heartImage.clone();
+                heartImage3.top = "-105px";
+
+
+
+                
+
+
+                /*
+                // create a sprite manager to hold the heart sprite
+                var spriteManagerHeart = new BABYLON.SpriteManager("spriteManagerHeart", "images/heart.png", 1, {width: 128, height: 128}, scene);
+
+                // create a heart sprite and set its initial frame to the full heart
+                var heart = new BABYLON.Sprite("heart", spriteManagerHeart);
+                //heart.playAnimation(0, 0, true);
+                //heart.size = 10.5;
+
+                // set the position of the heart sprite in the scene
+                heart.position = new BABYLON.Vector3(0, 0, 4);
+
+
+                // update the heart sprite every frame
+                scene.registerBeforeRender(function () {
+                // decrease the health over time
+                var health = 1.0;
+                health -= 0.001;
+
+                // clamp the health value between 0 and 1
+                health = Math.max(0, Math.min(1, health));
+
+                // update the heart sprite frame based on the health value
+                heart.playAnimation(Math.floor(health * 5), Math.floor(health * 5), true);
+                });*/
+
                 
                 
             }
@@ -543,13 +611,20 @@ var canvas = document.getElementById("renderCanvas");
                 cannonfoot.visibility = 0;
                 cannontube.visibility = 0;
                 itarg.visibility=0;
+
+               
+                
                
                 advancedTexture.addControl(scoreImage); 
+                
                 advancedTexture.addControl(button1); 
+
                 advancedTexture.addControl(rect1);
                 rect1.addControl(label);
-                advancedTexture.addControl(rect2);
-                rect2.addControl(label1);
+                rect1.addControl(labelSmash);
+                
+                //advancedTexture.addControl(rect2);
+                //rect2.addControl(label1);
                 //rect2.addControl(label2);
                 //rect2.addControl(mesh);
 
@@ -557,6 +632,15 @@ var canvas = document.getElementById("renderCanvas");
                 rect3.addControl(timeBlock);
 
                 advancedTexture.addControl(pointer);
+                
+                advancedTexture.addControl(heartImage);
+                advancedTexture.addControl(heartImage1);  
+                advancedTexture.addControl(heartImage2);  
+                advancedTexture.addControl(heartImage3);  
+                heartImage.isVisible = false;
+                heartImage1.isVisible = false;
+                heartImage2.isVisible = false;
+                heartImage3.isVisible = false;
 
             }
 
@@ -1133,7 +1217,7 @@ var canvas = document.getElementById("renderCanvas");
                     particleBlast(t.object);
                     //t.object.dispose();
                     point +=1;
-                    if(life <5)  life +=1;
+                    if(life <4)  life +=1;
                     //castRay(bullet);
                 }
 
@@ -1367,10 +1451,42 @@ var canvas = document.getElementById("renderCanvas");
                     }
                     
                     var lifeBar = "";
-                    for(var i = 0; i < life; i++) lifeBar += "X";
-
-                    label.text = "Smash \n " +point;
-                    label1.text = "Life \n " + lifeBar;
+                    //for(var i = 0; i < life; i++) lifeBar += "X";
+                    
+                    if(life == 0){
+                       // console.log("life 0 is ",life);
+                        heartImage.isVisible  = false;
+                        heartImage1.isVisible = false;
+                        heartImage2.isVisible = false;
+                        heartImage3.isVisible = false;
+                    }else if(life == 1){
+                       // console.log("life 1 is ",life);
+                        heartImage.isVisible  = true;
+                        heartImage1.isVisible = false;
+                        heartImage2.isVisible = false;
+                        heartImage3.isVisible = false;
+                    }if(life == 2){
+                        //console.log("life 2 is ",life);
+                        heartImage.isVisible  = true;
+                        heartImage1.isVisible = true;
+                        heartImage2.isVisible = false;
+                        heartImage3.isVisible = false;
+                    }if(life == 3){
+                        //console.log("life 3 is ",life);
+                        heartImage.isVisible  = true;
+                        heartImage1.isVisible = true;
+                        heartImage2.isVisible = true;
+                        heartImage3.isVisible = false;
+                    }if(life >= 4){
+                        //console.log("life 4 is ",life);
+                        heartImage.isVisible  = true;
+                        heartImage1.isVisible = true;
+                        heartImage2.isVisible = true;
+                        heartImage3.isVisible = true;
+                    }
+                    
+                    label.text = point;
+                    //label1.text = "Life \n " + lifeBar;
 
                     /*for (var i = 0; i < enemy.length; i++) {
                         enemy[i].rotation.x = -Math.PI / 2; 
