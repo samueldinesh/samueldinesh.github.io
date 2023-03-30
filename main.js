@@ -477,9 +477,9 @@ var canvas = document.getElementById("renderCanvas");
                 rect1.width = 0.2;
                 rect1.height = "80px";
                 rect1.cornerRadius = 20;
-                rect1.color = "#04124D";//"Orange";
+                rect1.color = "Orange";//"#04124D";
                 rect1.thickness = 4;
-                //rect1.background = "#04124D";
+                //rect1.background = "Magenta";//"#04124D";
                 rect1.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM; //move button to bottem end
                 rect1.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
                 rect1.top = "-5px"; -40// move button little over cannonfoot
@@ -490,11 +490,13 @@ var canvas = document.getElementById("renderCanvas");
                 label.text = point;
                 label.color = "Orange";
                 label.fontSize = 25;
+                label.top = "-10px";
 
                 labelSmash = new BABYLON.GUI.TextBlock();
-                labelSmash.text = "\nSmash";
+                labelSmash.text = "\n\nSmash";
                 labelSmash.color = "Orange";
-                labelSmash.fontSize = 22;
+                labelSmash.fontSize = 18;
+                labelSmash.top = "-10px";
                 //rect1.addControl(label);
 
                 rect2 = new BABYLON.GUI.Rectangle();
@@ -1445,9 +1447,11 @@ var canvas = document.getElementById("renderCanvas");
                         //showGameOverScreen();
                         destroyGameElement();
                         gameOverScreen();
+                        life=0;
                     }else if( enemy.length <= 0 && gameOverCheck == true){
                         destroyGameElement();
                         gameOverScreen();
+                        life=0;
                     }
                     
                     var lifeBar = "";
